@@ -64,6 +64,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '263476182469',
     projectId: 'transport-4b377',
     storageBucket: 'transport-4b377.firebasestorage.app',
+    androidClientId: '263476182469-1160v8ibbqliedcnrbs2vkbs462b4rc1.apps.googleusercontent.com',
+    iosClientId: '263476182469-k1352c2tm32n609a7lcocar0grq51h4i.apps.googleusercontent.com',
     iosBundleId: 'com.trasnport.dz.trasport',
   );
 
@@ -73,6 +75,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '263476182469',
     projectId: 'transport-4b377',
     storageBucket: 'transport-4b377.firebasestorage.app',
+    androidClientId: '263476182469-1160v8ibbqliedcnrbs2vkbs462b4rc1.apps.googleusercontent.com',
+    iosClientId: '263476182469-k1352c2tm32n609a7lcocar0grq51h4i.apps.googleusercontent.com',
     iosBundleId: 'com.trasnport.dz.trasport',
   );
 
@@ -85,4 +89,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'transport-4b377.firebasestorage.app',
     measurementId: 'G-F1EQTBHHY7',
   );
+
 }

@@ -12,7 +12,20 @@
           "package_name": "com.trasnport.dz.trasport"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "263476182469-1160v8ibbqliedcnrbs2vkbs462b4rc1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.trasnport.dz.trasport",
+            "certificate_hash": "503bca0e7d9cf11193b8a34339154f33bc34aace"
+          }
+        },
+        {
+          "client_id": "263476182469-rb90c3c0braunpql4p079sfn93muugm9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDJPMnoZIDj1p9WlBH4FxSg3GTYVGyZxZY"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "263476182469-rb90c3c0braunpql4p079sfn93muugm9.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "263476182469-k1352c2tm32n609a7lcocar0grq51h4i.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.trasnport.dz.trasport"
+              }
+            }
+          ]
         }
       }
     }
