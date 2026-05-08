@@ -12,6 +12,7 @@ import 'data/services/firebase_service.dart';
 import 'data/services/tracking_service.dart';
 import 'data/models/models.dart';
 
+import 'firebase_options.dart';
 import 'presentation/providers/auth_provider.dart';
 import 'presentation/providers/transport_provider.dart';
 import 'presentation/providers/providers.dart';
@@ -39,8 +40,10 @@ import 'data/services/supabase_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Orientation portrait + landscape (desktop aussi)
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  //Orientation portrait + landscape (desktop aussi)
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.landscapeLeft,

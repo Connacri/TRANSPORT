@@ -50,6 +50,7 @@ class NotificationsScreen extends StatelessWidget {
                   notif: n,
                   onTap: () async {
                     await notifProv.markRead(n.id);
+                    if (!context.mounted) return;
                     _navigate(context, n);
                   },
                 );

@@ -265,9 +265,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const Expanded(child: Text('Mode sombre')),
                   Switch.adaptive(
                     value: theme.themeMode == ThemeMode.dark,
-                    activeColor: AppColors.primary,
-                    onChanged: (_) => theme.toggle(),
-                  ),
+                    activeTrackColor: AppColors.primary,
+                    onChanged: (_) => theme.toggle()),
                 ],
               ),
             ],

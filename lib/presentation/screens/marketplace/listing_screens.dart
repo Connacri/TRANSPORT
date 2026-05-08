@@ -13,6 +13,7 @@ import '../../providers/auth_provider.dart';
 // Imports
 import 'package:image_picker/image_picker.dart';
 import '../../../core/constants/app_constants.dart';
+// import '../../providers/providers.dart';
 
 class ListingDetailScreen extends StatefulWidget {
   final String listingId;
@@ -622,5 +623,3 @@ class _TypeToggle extends StatelessWidget {
     );
   }
 }
-
-

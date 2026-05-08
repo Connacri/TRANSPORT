@@ -158,7 +158,6 @@ class _TransporterSetupScreenState extends State<TransporterSetupScreen> {
   @override
   Widget build(BuildContext context) {
     final transProv = context.watch<TransporterProvider>();
-    final theme     = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -510,7 +509,7 @@ class _ServiceToggleCard extends StatelessWidget {
                   ],
                 ),
               ),
-              Switch.adaptive(value: value, onChanged: onToggle, activeColor: color),
+              Switch.adaptive(value: value, onChanged: onToggle, activeTrackColor: color),
             ],
           ),
           if (child != null) child!,

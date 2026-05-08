@@ -73,8 +73,6 @@ class _TransporterHomeScreenState extends State<TransporterHomeScreen> {
   @override
   Widget build(BuildContext context) {
     final transProv = context.watch<TransporterProvider>();
-    final auth      = context.watch<AuthProvider>();
-    final transport = context.watch<TransportProvider>();
     final notifProv = context.watch<NotificationProvider>();
     final theme     = Theme.of(context);
     final isDark    = theme.brightness == Brightness.dark;
@@ -109,7 +107,7 @@ class _TransporterHomeScreenState extends State<TransporterHomeScreen> {
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: () => transProv.loadTransporter(auth.profile!.id),
+        onRefresh: () => transProv.loadTransporter(t!.profileId),
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
@@ -274,7 +272,6 @@ class _StatusCard extends StatelessWidget {
           Switch.adaptive(
             value: isAvailable,
             onChanged: isValidated ? (_) => onToggle() : null,
-            activeColor: Colors.white,
             activeTrackColor: Colors.white.withValues(alpha: 0.4),
           ),
         ],
