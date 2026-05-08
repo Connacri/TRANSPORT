@@ -7,7 +7,6 @@ import '../../../core/theme/app_theme.dart';
 import '../../../data/models/models.dart';
 import '../../../main.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/providers.dart';
 
 class SupervisorHomeScreen extends StatefulWidget {
   const SupervisorHomeScreen({super.key});
@@ -108,15 +107,15 @@ class _SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
                     child: Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: AppColors.success.withOpacity(0.08),
+                        color: AppColors.success.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.success.withOpacity(0.2)),
+                        border: Border.all(color: AppColors.success.withValues(alpha: 0.2)),
                       ),
-                      child: Row(
+                      child: const Row(
                         children: [
-                          const Icon(Icons.store_outlined, color: AppColors.success, size: 26),
-                          const SizedBox(width: 12),
-                          const Expanded(
+                          Icon(Icons.store_outlined, color: AppColors.success, size: 26),
+                          SizedBox(width: 12),
+                          Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -125,7 +124,7 @@ class _SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
                               ],
                             ),
                           ),
-                          const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.success),
+                          Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.success),
                         ],
                       ),
                     ),
@@ -133,7 +132,7 @@ class _SupervisorHomeScreenState extends State<SupervisorHomeScreen> {
                 ],
               ),
             ),
-      bottomNavigationBar: _SupervisorBottomNav(currentIndex: 0),
+      bottomNavigationBar: const _SupervisorBottomNav(currentIndex: 0),
     );
   }
 }
@@ -181,7 +180,7 @@ class _TierCard extends StatelessWidget {
                   style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 4),
                 Text('${supervisor.remainingSlots} place(s) disponible(s)',
-                  style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 13)),
+                  style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 13)),
                 const SizedBox(height: 8),
                 Text('Code parrainage : ${supervisor.referralCode}',
                   style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13)),
@@ -268,9 +267,9 @@ class _MonthlyProgressCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: (isDone ? AppColors.success : AppColors.warning).withOpacity(0.08),
+        color: (isDone ? AppColors.success : AppColors.warning).withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: (isDone ? AppColors.success : AppColors.warning).withOpacity(0.3)),
+        border: Border.all(color: (isDone ? AppColors.success : AppColors.warning).withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -291,7 +290,7 @@ class _MonthlyProgressCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(6),
             child: LinearProgressIndicator(
               value: progress,
-              backgroundColor: Colors.grey.withOpacity(0.2),
+              backgroundColor: Colors.grey.withValues(alpha: 0.2),
               valueColor: AlwaysStoppedAnimation(isDone ? AppColors.success : AppColors.warning),
               minHeight: 8,
             ),
@@ -330,10 +329,10 @@ class _ReferralTile extends StatelessWidget {
             child: t != null
                 ? Image.network(t.vehiclePhotoUrl, width: 52, height: 40, fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => Container(width: 52, height: 40,
-                      color: AppColors.primary.withOpacity(0.1),
+                      color: AppColors.primary.withValues(alpha: 0.1),
                       child: const Icon(Icons.local_shipping, color: AppColors.primary)))
                 : Container(width: 52, height: 40,
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: AppColors.primary.withValues(alpha: 0.1),
                     child: const Icon(Icons.local_shipping, color: AppColors.primary)),
           ),
           const SizedBox(width: 12),
@@ -353,7 +352,7 @@ class _ReferralTile extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: (referral.isActive ? AppColors.success : AppColors.error).withOpacity(0.1),
+                  color: (referral.isActive ? AppColors.success : AppColors.error).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(referral.isActive ? 'Actif' : 'Inactif',
@@ -404,7 +403,7 @@ class _ReferralQrCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
+              color: AppColors.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(supervisor.referralCode ?? '',
@@ -427,9 +426,9 @@ class _CommissionSuspendedAlert extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.error.withOpacity(0.1),
+        color: AppColors.error.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.error.withOpacity(0.4)),
+        border: Border.all(color: AppColors.error.withValues(alpha: 0.4)),
       ),
       child: Row(
         children: [
@@ -460,9 +459,9 @@ class _MonthlyObjectiveAlert extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.warning.withOpacity(0.1),
+        color: AppColors.warning.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.warning.withOpacity(0.4)),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.4)),
       ),
       child: Row(
         children: [
@@ -495,7 +494,7 @@ class _EmptyReferrals extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Icon(Icons.people_outline, size: 48, color: Colors.grey.withOpacity(0.5)),
+          Icon(Icons.people_outline, size: 48, color: Colors.grey.withValues(alpha: 0.5)),
           const SizedBox(height: 12),
           const Text('Pas encore de transporteurs', style: TextStyle(fontWeight: FontWeight.w600)),
           const Text('Commencez à parrainer des transporteurs.', style: TextStyle(fontSize: 12, color: AppColors.textSecondaryLight)),
@@ -536,3 +535,4 @@ class _SupervisorBottomNav extends StatelessWidget {
     );
   }
 }
+

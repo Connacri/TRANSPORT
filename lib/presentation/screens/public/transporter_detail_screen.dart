@@ -3,13 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/models/models.dart';
 import '../../../data/services/supabase_service.dart';
-import '../../providers/auth_provider.dart';
-import '../../providers/transport_provider.dart';
-import '../../widgets/widgets.dart';
 
 class TransporterDetailScreen extends StatefulWidget {
   final String transporterId;
@@ -54,7 +50,6 @@ class _TransporterDetailScreenState extends State<TransporterDetailScreen>
     if (_transporter == null) return const Scaffold(body: Center(child: Text('Introuvable')));
 
     final t     = _transporter!;
-    final theme = Theme.of(context);
 
     return Scaffold(
       body: NestedScrollView(
@@ -67,7 +62,7 @@ class _TransporterDetailScreenState extends State<TransporterDetailScreen>
                 fit: StackFit.expand,
                 children: [
                   Image.network(t.vehiclePhotoUrl, fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(color: AppColors.primary.withOpacity(0.15),
+                    errorBuilder: (_, __, ___) => Container(color: AppColors.primary.withValues(alpha: 0.15),
                       child: const Icon(Icons.local_shipping, size: 80, color: AppColors.primary))),
                   // Gradient overlay
                   const DecoratedBox(decoration: BoxDecoration(
@@ -130,7 +125,7 @@ class _TransporterDetailScreenState extends State<TransporterDetailScreen>
                   height: 54,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: Colors.grey.withOpacity(0.15),
+                    color: Colors.grey.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: Text(
@@ -220,7 +215,7 @@ class _ProfileTab extends StatelessWidget {
 
         // Documents vérifiés
         _InfoSection(title: '📋 Documents vérifiés', children: [
-          _DocRow(label: 'Photo véhicule', ok: true),
+          const _DocRow(label: 'Photo véhicule', ok: true),
           _DocRow(label: 'Visage', ok: t.facePhotoUrl != null),
           _DocRow(label: 'Permis de conduire', ok: t.licensePhotoUrl != null),
           _DocRow(label: 'Carte grise', ok: t.registrationPhotoUrl != null),
@@ -274,9 +269,9 @@ class _RatingSummary extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.warning.withOpacity(0.08),
+        color: AppColors.warning.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.warning.withOpacity(0.3)),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -311,7 +306,7 @@ class _RatingSummary extends StatelessWidget {
                         borderRadius: BorderRadius.circular(3),
                         child: LinearProgressIndicator(
                           value: pct, minHeight: 6,
-                          backgroundColor: Colors.grey.withOpacity(0.2),
+                          backgroundColor: Colors.grey.withValues(alpha: 0.2),
                           valueColor: const AlwaysStoppedAnimation(AppColors.warning),
                         ),
                       )),
@@ -348,7 +343,7 @@ class _ReviewCard extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 18,
-                backgroundColor: AppColors.primary.withOpacity(0.15),
+                backgroundColor: AppColors.primary.withValues(alpha: 0.15),
                 child: Text(rating.client?.displayName.substring(0, 1).toUpperCase() ?? '?',
                   style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700)),
               ),
@@ -393,7 +388,7 @@ class _StatBox extends StatelessWidget {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(color: color.withOpacity(0.08), borderRadius: BorderRadius.circular(12)),
+        decoration: BoxDecoration(color: color.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(12)),
         child: Column(children: [
           Icon(icon, color: color, size: 20),
           const SizedBox(height: 4),
@@ -477,10 +472,11 @@ class _DocRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(children: [
         Icon(ok ? Icons.check_circle_outline : Icons.radio_button_unchecked,
-          size: 16, color: ok ? AppColors.success : Colors.grey.withOpacity(0.4)),
+          size: 16, color: ok ? AppColors.success : Colors.grey.withValues(alpha: 0.4)),
         const SizedBox(width: 10),
         Text(label, style: TextStyle(color: ok ? null : AppColors.textSecondaryLight, fontSize: 13)),
       ]),
     );
   }
 }
+

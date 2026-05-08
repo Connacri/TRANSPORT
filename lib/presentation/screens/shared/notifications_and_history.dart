@@ -7,13 +7,8 @@ import '../../../core/theme/app_theme.dart';
 import '../../../data/models/models.dart';
 import '../../providers/providers.dart';
 // Imports
-import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
-import '../../../data/models/models.dart';
-import '../../../core/theme/app_theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/transport_provider.dart';
-import '../../providers/providers.dart';
 
 class NotificationsScreen extends StatelessWidget {
   const NotificationsScreen({super.key});
@@ -101,19 +96,18 @@ class _NotifTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return InkWell(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        color: notif.isRead ? null : _iconColor.withOpacity(0.05),
+        color: notif.isRead ? null : _iconColor.withValues(alpha: 0.05),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
               width: 44, height: 44,
               decoration: BoxDecoration(
-                color: _iconColor.withOpacity(0.12),
+                color: _iconColor.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
               ),
               child: Icon(_icon, color: _iconColor, size: 22),
@@ -144,7 +138,7 @@ class _NotifTile extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     _timeAgo(notif.createdAt),
-                    style: TextStyle(fontSize: 11, color: _iconColor.withOpacity(0.8)),
+                    style: TextStyle(fontSize: 11, color: _iconColor.withValues(alpha: 0.8)),
                   ),
                 ],
               ),
@@ -267,7 +261,7 @@ class _RequestHistoryCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.cardTheme.color,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: request.statusColor.withOpacity(0.25)),
+        border: Border.all(color: request.statusColor.withValues(alpha: 0.25)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(14),
@@ -280,7 +274,7 @@ class _RequestHistoryCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: request.statusColor.withOpacity(0.1),
+                    color: request.statusColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(request.statusLabel,
@@ -301,7 +295,7 @@ class _RequestHistoryCard extends StatelessWidget {
                 Column(
                   children: [
                     const Icon(Icons.radio_button_checked, color: AppColors.success, size: 14),
-                    Container(width: 1.5, height: 30, color: Colors.grey.withOpacity(0.3)),
+                    Container(width: 1.5, height: 30, color: Colors.grey.withValues(alpha: 0.3)),
                     const Icon(Icons.location_on, color: AppColors.error, size: 14),
                   ],
                 ),
@@ -379,12 +373,13 @@ class _MiniChip extends StatelessWidget {
       margin: const EdgeInsets.only(right: 6),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Text(label, style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.w600)),
     );
   }
 }
+
 
 

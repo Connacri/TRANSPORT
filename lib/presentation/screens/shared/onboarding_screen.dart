@@ -149,7 +149,7 @@ class _SlidePage extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [slide.color, slide.color.withOpacity(0.7)],
+          colors: [slide.color, slide.color.withValues(alpha: 0.7)],
           begin: Alignment.topLeft, end: Alignment.bottomRight,
         ),
       ),
@@ -177,3 +177,4 @@ class _SlidePage extends StatelessWidget {
     );
   }
 }
+

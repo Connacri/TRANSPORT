@@ -242,9 +242,9 @@ class _TransporterSummary extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.06),
+        color: AppColors.primary.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
@@ -253,7 +253,7 @@ class _TransporterSummary extends StatelessWidget {
             child: Image.network(transporter.vehiclePhotoUrl,
               width: 70, height: 55, fit: BoxFit.cover,
               errorBuilder: (_, __, ___) => Container(width: 70, height: 55,
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.primary.withValues(alpha: 0.1),
                 child: const Icon(Icons.local_shipping, color: AppColors.primary))),
           ),
           const SizedBox(width: 12),
@@ -302,9 +302,9 @@ class _OptionToggle extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: value ? color.withOpacity(0.08) : Theme.of(context).cardTheme.color,
+        color: value ? color.withValues(alpha: 0.08) : Theme.of(context).cardTheme.color,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: value ? color.withOpacity(0.4) : Colors.grey.withOpacity(0.2)),
+        border: Border.all(color: value ? color.withValues(alpha: 0.4) : Colors.grey.withValues(alpha: 0.2)),
       ),
       child: Row(
         children: [
@@ -323,7 +323,7 @@ class _OptionToggle extends StatelessWidget {
               ],
             ),
           ),
-          Switch.adaptive(value: value, onChanged: onToggle, activeColor: color),
+          Switch.adaptive(value: value, onChanged: onToggle, activeTrackColor: color),
         ],
       ),
     );
@@ -347,9 +347,9 @@ class _PriceEstimate extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.06),
+        color: AppColors.primary.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -437,7 +437,6 @@ class _TransporterRequestScreenState extends State<TransporterRequestScreen> {
 
     final transport = context.watch<TransportProvider>();
     final active    = transport.activeRequest ?? r;
-    final theme     = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Course en cours')),
@@ -449,9 +448,9 @@ class _TransporterRequestScreenState extends State<TransporterRequestScreen> {
           Container(
             padding: const EdgeInsets.symmetric(vertical: 14),
             decoration: BoxDecoration(
-              color: active.statusColor.withOpacity(0.1),
+              color: active.statusColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: active.statusColor.withOpacity(0.4)),
+              border: Border.all(color: active.statusColor.withValues(alpha: 0.4)),
             ),
             child: Column(children: [
               Text(active.statusLabel,
@@ -493,7 +492,7 @@ class _TransporterRequestScreenState extends State<TransporterRequestScreen> {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.06),
+              color: AppColors.primary.withValues(alpha: 0.06),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Row(
@@ -527,7 +526,6 @@ class _TransporterRequestScreenState extends State<TransporterRequestScreen> {
               color: AppColors.success,
               isLoading: transport.isLoading,
               onPressed: () async {
-                final auth       = context.read<AuthProvider>();
                 final transProv  = context.read<TransporterProvider>();
                 await transport.startTransport(
                   requestId: active.id,
@@ -535,7 +533,7 @@ class _TransporterRequestScreenState extends State<TransporterRequestScreen> {
                   clientId: active.clientId,
                   intervalSeconds: transProv.transporter!.locationIntervalSeconds,
                 );
-                setState(() {});
+                if (mounted) setState(() {});
               },
             ),
           ],
@@ -606,4 +604,5 @@ class _InfoCard extends StatelessWidget {
     );
   }
 }
+
 

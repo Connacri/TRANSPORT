@@ -1,0 +1,189 @@
+name: Build & Release TransportHub
+
+on:
+  push:
+    branches: [ master ]
+    paths-ignore:
+      - 'README.md'
+      - 'LICENSE'
+      - '.gitignore'
+
+permissions:
+  contents: write
+
+jobs:
+  # ═══════════════════════════════════════════
+  # JOB 0 – Extraire la version
+  # ═══════════════════════════════════════════
+  extract-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version_name: ${{ steps.ver.outputs.version_name }}
+      version_full: ${{ steps.ver.outputs.version_full }}
+      tag: ${{ steps.ver.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extraire VERSION_NAME depuis pubspec.yaml
+        id: ver
+        run: |
+          VERSION_NAME=$(grep '^version:' pubspec.yaml | sed 's/version: //' | cut -d'+' -f1 | tr -d '[:space:]')
+          VERSION_FULL="${VERSION_NAME}.${{ github.run_number }}"
+          TAG="v${VERSION_FULL}"
+          echo "version_name=${VERSION_NAME}" >> $GITHUB_OUTPUT
+          echo "version_full=${VERSION_FULL}"  >> $GITHUB_OUTPUT
+          echo "tag=${TAG}"                    >> $GITHUB_OUTPUT
+          echo "▶ VERSION_NAME = ${VERSION_NAME}"
+          echo "▶ VERSION_FULL = ${VERSION_FULL}"
+          echo "▶ TAG          = ${TAG}"
+
+  # ═══════════════════════════════════════════
+  # JOB 1 – Tests & Analyse
+  # ═══════════════════════════════════════════
+  test:
+    needs: extract-version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+
+  # ═══════════════════════════════════════════
+  # JOB 2 – Build Android APK
+  # ═══════════════════════════════════════════
+  build-android:
+    needs: [extract-version, test]
+    runs-on: ubuntu-latest
+    env:
+      VERSION_NAME: ${{ needs.extract-version.outputs.version_name }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - run: flutter pub get
+
+      - name: Build APK release
+        run: |
+          flutter build apk --release \
+            --build-name="${VERSION_NAME}" \
+            --build-number=${{ github.run_number }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: transport_hub_android
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+  # ═══════════════════════════════════════════
+  # JOB 3 – Build Windows + Inno Setup
+  # ═══════════════════════════════════════════
+  build-windows:
+    needs: [extract-version, test]
+    runs-on: windows-latest
+    env:
+      VERSION_NAME: ${{ needs.extract-version.outputs.version_name }}
+      VERSION_FULL: ${{ needs.extract-version.outputs.version_full }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Patcher pubspec & setup.iss
+        shell: pwsh
+        run: |
+          $versionName = "$env:VERSION_NAME"
+          $versionFull = "$env:VERSION_FULL"
+          $buildNumber = "${{ github.run_number }}"
+
+          # pubspec.yaml
+          (Get-Content pubspec.yaml) -replace '^version: .*', "version: $versionName+$buildNumber" | Set-Content pubspec.yaml
+          
+          # installer/setup.iss
+          (Get-Content installer/setup.iss) -replace '#define AppVersion "[^"]*"', "#define AppVersion `"$versionFull`"" | Set-Content installer/setup.iss
+
+      - run: flutter pub get
+
+      - name: Build Windows
+        run: flutter build windows --release
+
+      - name: Installer Inno Setup
+        run: choco install innosetup -y
+
+      - name: Build installeur .exe
+        run: iscc installer/setup.iss
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: transport_hub_windows
+          path: installer/output/*.exe
+
+  # ═══════════════════════════════════════════
+  # JOB 4 – Release GitHub & Assets Update
+  # ═══════════════════════════════════════════
+  release:
+    needs: [extract-version, build-android, build-windows]
+    runs-on: ubuntu-latest
+    env:
+      VERSION_FULL: ${{ needs.extract-version.outputs.version_full }}
+      TAG:          ${{ needs.extract-version.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: transport_hub_android
+          path: dist/
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: transport_hub_windows
+          path: dist/
+
+      - name: Renommer les fichiers
+        run: |
+          mv dist/app-release.apk dist/TransportHub_v${{ env.VERSION_FULL }}.apk
+          find dist/ -name "*.exe" -exec mv {} dist/TransportHub_v${{ env.VERSION_FULL }}_Installer.exe \;
+
+      - name: Créer la Release GitHub
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG }}
+          name: "TransportHub v${{ env.VERSION_FULL }}"
+          body: |
+            ## 🚀 TransportHub - Release ${{ env.VERSION_FULL }}
+            
+            ### 📥 Téléchargement
+            - 🤖 **Android** : [TransportHub_v${{ env.VERSION_FULL }}.apk](${{ github.server_url }}/${{ github.repository }}/releases/download/${{ env.TAG }}/TransportHub_v${{ env.VERSION_FULL }}.apk)
+            - 🪟 **Windows** : [TransportHub_v${{ env.VERSION_FULL }}_Installer.exe](${{ github.server_url }}/${{ github.repository }}/releases/download/${{ env.TAG }}/TransportHub_v${{ env.VERSION_FULL }}_Installer.exe)
+            
+            ---
+            *Généré automatiquement par GitHub Actions.*
+          files: |
+            dist/*.apk
+            dist/*.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Mettre à jour pubspec.yaml (master)
+        run: |
+          sed -i "s/^version: .*/version: ${{ needs.extract-version.outputs.version_name }}+${{ github.run_number }}/" pubspec.yaml
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add pubspec.yaml
+          git commit -m "chore: bump version to ${{ env.VERSION_FULL }} [skip ci]" || echo "No changes to commit"
+          git push origin master

@@ -13,7 +13,6 @@ import '../../providers/auth_provider.dart';
 // Imports
 import 'package:image_picker/image_picker.dart';
 import '../../../core/constants/app_constants.dart';
-import '../../providers/providers.dart';
 
 class ListingDetailScreen extends StatefulWidget {
   final String listingId;
@@ -82,7 +81,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                           onPageChanged: (i) => setState(() => _imgIdx = i),
                           itemBuilder: (_, i) => CachedNetworkImage(
                             imageUrl: l.imagesUrls[i], fit: BoxFit.cover,
-                            placeholder: (_, __) => Container(color: AppColors.primary.withOpacity(0.08)),
+                            placeholder: (_, __) => Container(color: AppColors.primary.withValues(alpha: 0.08)),
                           ),
                         ),
                         if (l.imagesUrls.length > 1)
@@ -104,7 +103,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                       ],
                     )
                   : Container(
-                      color: AppColors.primary.withOpacity(0.08),
+                      color: AppColors.primary.withValues(alpha: 0.08),
                       child: Center(child: Text(l.type == ListingType.product ? '📦' : '🔧',
                         style: const TextStyle(fontSize: 80))),
                     ),
@@ -127,7 +126,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                         const SizedBox(width: 8),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(color: AppColors.premiumGold.withOpacity(0.15), borderRadius: BorderRadius.circular(20)),
+                          decoration: BoxDecoration(color: AppColors.premiumGold.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(20)),
                           child: const Row(mainAxisSize: MainAxisSize.min, children: [
                             Icon(Icons.star, size: 12, color: AppColors.premiumGold),
                             SizedBox(width: 4),
@@ -240,7 +239,7 @@ class _TypeBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: (isProduct ? AppColors.info : AppColors.warning).withOpacity(0.12),
+        color: (isProduct ? AppColors.info : AppColors.warning).withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
@@ -267,7 +266,7 @@ class _SellerCard extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 26,
-            backgroundColor: AppColors.primary.withOpacity(0.15),
+            backgroundColor: AppColors.primary.withValues(alpha: 0.15),
             backgroundImage: seller?.avatarUrl != null ? NetworkImage(seller!.avatarUrl!) : null,
             child: seller?.avatarUrl == null
                 ? Text(seller?.displayName.substring(0, 1).toUpperCase() ?? '?',
@@ -286,7 +285,7 @@ class _SellerCard extends StatelessWidget {
                   margin: const EdgeInsets.only(top: 4),
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: (seller?.roleColor ?? AppColors.primary).withOpacity(0.1),
+                    color: (seller?.roleColor ?? AppColors.primary).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(seller?.roleLabel ?? '', style: TextStyle(
@@ -387,10 +386,13 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
         context.pop();
       }
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erreur : $e'), backgroundColor: AppColors.error));
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
     }
-    setState(() => _loading = false);
   }
 
   @override
@@ -410,7 +412,7 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
           children: [
 
             // ── TYPE ──────────────────────────────────────────────
-            _SectionLabel('Type d\'annonce'),
+            const _SectionLabel('Type d\'annonce'),
             Row(
               children: [
                 Expanded(child: _TypeToggle(
@@ -427,7 +429,7 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
             const SizedBox(height: 20),
 
             // ── PHOTOS ────────────────────────────────────────────
-            _SectionLabel('Photos * (max 8)'),
+            const _SectionLabel('Photos * (max 8)'),
             const SizedBox(height: 8),
             SizedBox(
               height: 100,
@@ -440,9 +442,9 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
                       width: 90, height: 90,
                       margin: const EdgeInsets.only(right: 10),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.06),
+                        color: AppColors.primary.withValues(alpha: 0.06),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.primary.withOpacity(0.3), style: BorderStyle.solid),
+                        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3), style: BorderStyle.solid),
                       ),
                       child: const Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -462,7 +464,7 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(12),
                           child: Image.network(e.value.path, fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(color: Colors.grey.withOpacity(0.2))),
+                            errorBuilder: (_, __, ___) => Container(color: Colors.grey.withValues(alpha: 0.2))),
                         ),
                       ),
                       Positioned(top: 4, right: 14,
@@ -483,7 +485,7 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
             const SizedBox(height: 20),
 
             // ── TITRE ─────────────────────────────────────────────
-            _SectionLabel('Titre *'),
+            const _SectionLabel('Titre *'),
             TextFormField(
               controller: _titleCtrl,
               decoration: const InputDecoration(hintText: 'Ex: Camion Mercedes 14 tonnes...'),
@@ -492,9 +494,9 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
             const SizedBox(height: 14),
 
             // ── CATÉGORIE ─────────────────────────────────────────
-            _SectionLabel('Catégorie'),
+            const _SectionLabel('Catégorie'),
             DropdownButtonFormField<String>(
-              value: _categoryId,
+              initialValue: _categoryId,
               decoration: const InputDecoration(hintText: 'Sélectionnez une catégorie'),
               items: _categories.map((c) => DropdownMenuItem<String>(
                 value: c['id'] as String,
@@ -505,7 +507,7 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
             const SizedBox(height: 14),
 
             // ── DESCRIPTION ───────────────────────────────────────
-            _SectionLabel('Description'),
+            const _SectionLabel('Description'),
             TextFormField(
               controller: _descCtrl,
               maxLines: 4,
@@ -514,7 +516,7 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
             const SizedBox(height: 14),
 
             // ── PRIX ──────────────────────────────────────────────
-            _SectionLabel('Prix (DA)'),
+            const _SectionLabel('Prix (DA)'),
             Row(
               children: [
                 Expanded(
@@ -540,7 +542,7 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
             const SizedBox(height: 14),
 
             // ── VILLE ─────────────────────────────────────────────
-            _SectionLabel('Ville'),
+            const _SectionLabel('Ville'),
             TextFormField(
               controller: _cityCtrl,
               decoration: const InputDecoration(hintText: 'Ex: Alger, Oran...', prefixIcon: Icon(Icons.location_on_outlined)),
@@ -551,7 +553,7 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: AppColors.info.withOpacity(0.08),
+                color: AppColors.info.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Row(
@@ -605,9 +607,9 @@ class _TypeToggle extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
-          color: selected ? AppColors.primary.withOpacity(0.1) : Theme.of(context).cardTheme.color,
+          color: selected ? AppColors.primary.withValues(alpha: 0.1) : Theme.of(context).cardTheme.color,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: selected ? AppColors.primary : Colors.grey.withOpacity(0.25), width: selected ? 1.5 : 1),
+          border: Border.all(color: selected ? AppColors.primary : Colors.grey.withValues(alpha: 0.25), width: selected ? 1.5 : 1),
         ),
         child: Center(
           child: Text(label, style: TextStyle(
@@ -620,4 +622,5 @@ class _TypeToggle extends StatelessWidget {
     );
   }
 }
+
 

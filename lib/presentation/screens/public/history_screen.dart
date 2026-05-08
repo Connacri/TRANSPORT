@@ -121,7 +121,7 @@ class _HistoryCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.cardTheme.color,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: request.statusColor.withOpacity(0.2)),
+        border: Border.all(color: request.statusColor.withValues(alpha: 0.2)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(14),
@@ -134,7 +134,7 @@ class _HistoryCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: request.statusColor.withOpacity(0.1),
+                    color: request.statusColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(request.statusLabel,
@@ -153,7 +153,7 @@ class _HistoryCard extends StatelessWidget {
                 Column(
                   children: [
                     const Icon(Icons.radio_button_checked, color: AppColors.success, size: 13),
-                    Container(width: 1, height: 22, color: Colors.grey.withOpacity(0.3)),
+                    Container(width: 1, height: 22, color: Colors.grey.withValues(alpha: 0.3)),
                     const Icon(Icons.location_on, color: AppColors.error, size: 13),
                   ],
                 ),
@@ -189,9 +189,9 @@ class _HistoryCard extends StatelessWidget {
                   const SizedBox(width: 10),
                 ],
                 if (request.needsHandling)
-                  _MiniTag(label: '💪 Manutention'),
+                  const _MiniTag(label: '💪 Manutention'),
                 if (request.needsTransportInsurance)
-                  _MiniTag(label: '🛡️ Assurance'),
+                  const _MiniTag(label: '🛡️ Assurance'),
                 const Spacer(),
                 if (request.totalPrice != null)
                   Text('${request.totalPrice!.toStringAsFixed(0)} DA',
@@ -242,10 +242,11 @@ class _MiniTag extends StatelessWidget {
       margin: const EdgeInsets.only(right: 6),
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.08),
+        color: AppColors.primary.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(label, style: const TextStyle(fontSize: 10, color: AppColors.primary, fontWeight: FontWeight.w600)),
     );
   }
 }
+

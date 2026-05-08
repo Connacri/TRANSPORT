@@ -28,7 +28,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
     // Charger la demande active si pas déjà chargée
     if (transport.activeRequest?.id != widget.requestId) {
       try {
-        final data = await SupabaseService.instance.client
+        await SupabaseService.instance.client
             .from('transport_requests')
             .select()
             .eq('id', widget.requestId)
@@ -80,7 +80,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
                     decoration: BoxDecoration(
                       color: req.statusColor,
                       borderRadius: BorderRadius.circular(20),
-                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 8)],
+                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 8)],
                     ),
                     child: Text(req.statusLabel,
                       style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13)),
@@ -109,14 +109,14 @@ class _TrackingScreenState extends State<TrackingScreen> {
               decoration: BoxDecoration(
                 color: theme.scaffoldBackgroundColor,
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 20)],
+                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.12), blurRadius: 20)],
               ),
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(width: 40, height: 4,
-                    decoration: BoxDecoration(color: Colors.grey.withOpacity(0.3), borderRadius: BorderRadius.circular(2))),
+                    decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(2))),
                   const SizedBox(height: 16),
 
                   // Stepper
@@ -167,7 +167,7 @@ class _FloatingBtn extends StatelessWidget {
         decoration: BoxDecoration(
           color: Theme.of(context).scaffoldBackgroundColor,
           shape: BoxShape.circle,
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 8)],
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.12), blurRadius: 8)],
         ),
         child: Icon(icon, size: 20),
       ),
@@ -186,11 +186,11 @@ class _SpeedIndicator extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.primary,
         borderRadius: BorderRadius.circular(14),
-        boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.4), blurRadius: 10)],
+        boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.4), blurRadius: 10)],
       ),
       child: Column(
         children: [
-          Text('${speed.toStringAsFixed(0)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 20)),
+          Text(speed.toStringAsFixed(0), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 20)),
           const Text('km/h', style: TextStyle(color: Colors.white70, fontSize: 10)),
         ],
       ),
@@ -209,7 +209,7 @@ class _RouteRow extends StatelessWidget {
         Column(
           children: [
             const Icon(Icons.radio_button_checked, color: AppColors.success, size: 16),
-            Container(width: 1.5, height: 24, color: Colors.grey.withOpacity(0.3)),
+            Container(width: 1.5, height: 24, color: Colors.grey.withValues(alpha: 0.3)),
             const Icon(Icons.location_on, color: AppColors.error, size: 16),
           ],
         ),
@@ -241,7 +241,7 @@ class _StatChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.08),
+        color: AppColors.primary.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
@@ -304,7 +304,7 @@ class _TrackingActionsState extends State<_TrackingActions> {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 4),
                     child: Icon(Icons.star, size: 38,
-                      color: i < score ? AppColors.warning : Colors.grey.withOpacity(0.3)),
+                      color: i < score ? AppColors.warning : Colors.grey.withValues(alpha: 0.3)),
                   ),
                 )),
               ),
@@ -373,7 +373,7 @@ class _TrackingActionsState extends State<_TrackingActions> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.success.withOpacity(0.08),
+              color: AppColors.success.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Row(
@@ -390,3 +390,4 @@ class _TrackingActionsState extends State<_TrackingActions> {
     );
   }
 }
+

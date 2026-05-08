@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:fl_chart/fl_chart.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/models/models.dart';
 import '../../providers/auth_provider.dart';
@@ -77,7 +76,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 ],
               ),
             ),
-      bottomNavigationBar: _AdminBottomNav(currentIndex: 0),
+      bottomNavigationBar: const _AdminBottomNav(currentIndex: 0),
     );
   }
 }
@@ -111,7 +110,7 @@ class _WelcomeHeader extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   'Panneau de contrôle TransportHub',
-                  style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 13),
+                  style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 13),
                 ),
               ],
             ),
@@ -119,7 +118,7 @@ class _WelcomeHeader extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.2),
+              color: AppColors.primary.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.admin_panel_settings_outlined, color: AppColors.primary, size: 30),
@@ -172,9 +171,9 @@ class _KpiCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: data.color.withOpacity(0.08),
+        color: data.color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: data.color.withOpacity(0.2)),
+        border: Border.all(color: data.color.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -207,9 +206,9 @@ class _PendingAlert extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.warning.withOpacity(0.1),
+          color: AppColors.warning.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.warning.withOpacity(0.5)),
+          border: Border.all(color: AppColors.warning.withValues(alpha: 0.5)),
         ),
         child: Row(
           children: [
@@ -239,10 +238,10 @@ class _AdminActionsGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final actions = [
-      _ActionItem('Valider transporteurs', Icons.verified_outlined, AppColors.success, '/home/admin/validate'),
-      _ActionItem('Règles métier', Icons.tune_outlined, AppColors.primary, '/home/admin/rules'),
-      _ActionItem('Superviseurs', Icons.supervisor_account_outlined, AppColors.info, '/home/admin/supervisors'),
-      _ActionItem('Boutiques', Icons.storefront_outlined, AppColors.warning, '/home/admin/validate'),
+      const _ActionItem('Valider transporteurs', Icons.verified_outlined, AppColors.success, '/home/admin/validate'),
+      const _ActionItem('Règles métier', Icons.tune_outlined, AppColors.primary, '/home/admin/rules'),
+      const _ActionItem('Superviseurs', Icons.supervisor_account_outlined, AppColors.info, '/home/admin/supervisors'),
+      const _ActionItem('Boutiques', Icons.storefront_outlined, AppColors.warning, '/home/admin/validate'),
     ];
 
     return GridView.builder(
@@ -257,9 +256,9 @@ class _AdminActionsGrid extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: actions[i].color.withOpacity(0.08),
+            color: actions[i].color.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: actions[i].color.withOpacity(0.2)),
+            border: Border.all(color: actions[i].color.withValues(alpha: 0.2)),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -327,7 +326,7 @@ class _BusinessRulesPreview extends StatelessWidget {
                     trailing: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.1),
+                        color: AppColors.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
@@ -411,13 +410,13 @@ class _SupervisorTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).cardTheme.color,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: tierColor.withOpacity(0.3)),
+        border: Border.all(color: tierColor.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
           CircleAvatar(
             radius: 22,
-            backgroundColor: tierColor.withOpacity(0.2),
+            backgroundColor: tierColor.withValues(alpha: 0.2),
             child: Text(
               supervisor.profile?.displayName.substring(0, 1).toUpperCase() ?? 'S',
               style: TextStyle(fontWeight: FontWeight.w700, color: tierColor, fontSize: 16),
@@ -436,7 +435,7 @@ class _SupervisorTile extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: tierColor.withOpacity(0.15),
+                        color: tierColor.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(supervisor.tierLabel,
@@ -489,3 +488,4 @@ class _AdminBottomNav extends StatelessWidget {
     );
   }
 }
+

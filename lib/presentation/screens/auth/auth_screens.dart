@@ -8,7 +8,6 @@ import '../../../core/theme/app_theme.dart';
 import '../../../data/services/supabase_service.dart';
 import '../../../data/models/models.dart';
 
-import '../../../core/theme/app_theme.dart';
 import '../../widgets/widgets.dart';
 
 
@@ -98,7 +97,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             borderRadius: BorderRadius.circular(24),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.primary.withOpacity(0.4),
+                                color: AppColors.primary.withValues(alpha: 0.4),
                                 blurRadius: 20, offset: const Offset(0, 8),
                               ),
                             ],
@@ -318,7 +317,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               // Région
               if (_regions.isNotEmpty) ...[
                 DropdownButtonFormField<String>(
-                  value: _selectedRegionId,
+                  initialValue: _selectedRegionId,
                   decoration: const InputDecoration(
                     labelText: 'Région',
                     prefixIcon: Icon(Icons.location_on_outlined),
@@ -347,13 +346,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
               // Info selon rôle
               if (_selectedRole == UserRole.transporter)
-                _InfoCard(
+                const _InfoCard(
                   icon: Icons.info_outline,
                   text: 'En tant que transporteur, vous devrez compléter votre profil véhicule après inscription.',
                   color: AppColors.info,
                 ),
               if (_selectedRole == UserRole.supervisor)
-                _InfoCard(
+                const _InfoCard(
                   icon: Icons.supervisor_account_outlined,
                   text: 'En tant que superviseur, vous pouvez parrainer jusqu\'à 20 transporteurs et recevoir des commissions sur leurs transports.',
                   color: AppColors.warning,
@@ -414,7 +413,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 20),
-                    Icon(Icons.lock_reset_outlined, size: 64, color: AppColors.primary),
+                    const Icon(Icons.lock_reset_outlined, size: 64, color: AppColors.primary),
                     const SizedBox(height: 20),
                     Text('Réinitialiser le mot de passe', style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700)),
                     const SizedBox(height: 8),
@@ -463,9 +462,9 @@ class _RoleSelector extends StatelessWidget {
             margin: const EdgeInsets.only(bottom: 10),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              color: isSelected ? AppColors.primary.withOpacity(0.1) : Colors.transparent,
+              color: isSelected ? AppColors.primary.withValues(alpha: 0.1) : Colors.transparent,
               border: Border.all(
-                color: isSelected ? AppColors.primary : Colors.grey.withOpacity(0.3),
+                color: isSelected ? AppColors.primary : Colors.grey.withValues(alpha: 0.3),
                 width: isSelected ? 2 : 1,
               ),
               borderRadius: BorderRadius.circular(14),
@@ -533,9 +532,9 @@ class _InfoCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -569,4 +568,5 @@ class _SuccessState extends StatelessWidget {
     );
   }
 }
+
 

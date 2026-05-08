@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../data/models/models.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/providers.dart';
 import '../../widgets/widgets.dart';
@@ -15,7 +14,6 @@ class TransporterSetupScreen extends StatefulWidget {
 }
 
 class _TransporterSetupScreenState extends State<TransporterSetupScreen> {
-  final _formKey       = GlobalKey<FormState>();
   final _pageCtrl      = PageController();
   int   _currentPage   = 0;
   final int _totalPages = 3;
@@ -252,7 +250,7 @@ class _SetupStepper extends StatelessWidget {
         children: List.generate(total * 2 - 1, (i) {
           if (i.isOdd) {
             return Expanded(child: Container(height: 2,
-              color: i ~/ 2 < current ? AppColors.primary : Colors.grey.withOpacity(0.3)));
+              color: i ~/ 2 < current ? AppColors.primary : Colors.grey.withValues(alpha: 0.3)));
           }
           final idx     = i ~/ 2;
           final isDone  = idx < current;
@@ -264,7 +262,7 @@ class _SetupStepper extends StatelessWidget {
                 duration: const Duration(milliseconds: 250),
                 width: 32, height: 32,
                 decoration: BoxDecoration(
-                  color: isDone || isCurr ? AppColors.primary : Colors.grey.withOpacity(0.2),
+                  color: isDone || isCurr ? AppColors.primary : Colors.grey.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
                 child: Center(
@@ -322,8 +320,8 @@ class _Page1Vehicle extends StatelessWidget {
               return ChoiceChip(
                 label: Text(t),
                 selected: sel,
-                selectedColor: AppColors.primary.withOpacity(0.15),
-                side: BorderSide(color: sel ? AppColors.primary : Colors.grey.withOpacity(0.3)),
+                selectedColor: AppColors.primary.withValues(alpha: 0.15),
+                side: BorderSide(color: sel ? AppColors.primary : Colors.grey.withValues(alpha: 0.3)),
                 labelStyle: TextStyle(color: sel ? AppColors.primary : null, fontWeight: sel ? FontWeight.w600 : null),
                 onSelected: (_) => onTypeChanged(t),
               );
@@ -454,7 +452,7 @@ class _Page2Services extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.info.withOpacity(0.08),
+              color: AppColors.info.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Row(
@@ -493,9 +491,9 @@ class _ServiceToggleCard extends StatelessWidget {
       duration: const Duration(milliseconds: 200),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: value ? color.withOpacity(0.08) : Theme.of(context).cardTheme.color,
+        color: value ? color.withValues(alpha: 0.08) : Theme.of(context).cardTheme.color,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: value ? color.withOpacity(0.5) : Colors.grey.withOpacity(0.2)),
+        border: Border.all(color: value ? color.withValues(alpha: 0.5) : Colors.grey.withValues(alpha: 0.2)),
       ),
       child: Column(
         children: [
@@ -592,18 +590,18 @@ class _DocUploadTile extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: uploaded ? AppColors.success.withOpacity(0.08) : Theme.of(context).cardTheme.color,
+          color: uploaded ? AppColors.success.withValues(alpha: 0.08) : Theme.of(context).cardTheme.color,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: uploaded ? AppColors.success.withOpacity(0.5)
-                : this.required ? AppColors.error.withOpacity(0.4)
-                : Colors.grey.withOpacity(0.2),
+            color: uploaded ? AppColors.success.withValues(alpha: 0.5)
+                : required ? AppColors.error.withValues(alpha: 0.4)
+                : Colors.grey.withValues(alpha: 0.2),
           ),
         ),
         child: Row(
           children: [
             Icon(uploaded ? Icons.check_circle : icon,
-              color: uploaded ? AppColors.success : (this.required ? AppColors.error : Colors.grey),
+              color: uploaded ? AppColors.success : (required ? AppColors.error : Colors.grey),
               size: 24),
             const SizedBox(width: 14),
             Expanded(
@@ -616,7 +614,7 @@ class _DocUploadTile extends StatelessWidget {
                         fontWeight: FontWeight.w500,
                         color: uploaded ? AppColors.success : null,
                       )),
-                      if (this.required)
+                      if (required)
                         const Text(' *', style: TextStyle(color: AppColors.error)),
                     ],
                   ),
@@ -628,7 +626,7 @@ class _DocUploadTile extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: (uploaded ? AppColors.success : AppColors.primary).withOpacity(0.1),
+                color: (uploaded ? AppColors.success : AppColors.primary).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Text('+$scorePoints%',
@@ -666,9 +664,9 @@ class _ScorePreview extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _color.withOpacity(0.08),
+        color: _color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: _color.withOpacity(0.3)),
+        border: Border.all(color: _color.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -689,7 +687,7 @@ class _ScorePreview extends StatelessWidget {
                   borderRadius: BorderRadius.circular(4),
                   child: LinearProgressIndicator(
                     value: _score / 100,
-                    backgroundColor: Colors.grey.withOpacity(0.2),
+                    backgroundColor: Colors.grey.withValues(alpha: 0.2),
                     valueColor: AlwaysStoppedAnimation(_color),
                     minHeight: 6,
                   ),
@@ -720,3 +718,4 @@ class _PageHeader extends StatelessWidget {
     );
   }
 }
+

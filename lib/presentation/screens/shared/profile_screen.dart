@@ -9,7 +9,6 @@ import '../../../data/models/models.dart';
 import '../../../data/services/supabase_service.dart';
 import '../../../main.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/providers.dart';
 import '../../widgets/widgets.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -50,8 +49,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
       await auth.updateProfile({'avatar_url': url});
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erreur : $e'), backgroundColor: AppColors.error));
+      }
     }
     if (mounted) setState(() => _savingAvatar = false);
   }
@@ -120,7 +121,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final auth    = context.watch<AuthProvider>();
     final theme   = context.watch<ThemeProvider>();
     final profile = auth.profile;
-    final isDark  = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
@@ -144,7 +144,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   onTap: _pickAvatar,
                   child: CircleAvatar(
                     radius: 54,
-                    backgroundColor: AppColors.primary.withOpacity(0.15),
+                    backgroundColor: AppColors.primary.withValues(alpha: 0.15),
                     backgroundImage: profile?.avatarUrl != null ? NetworkImage(profile!.avatarUrl!) : null,
                     child: _savingAvatar
                         ? const CircularProgressIndicator(color: AppColors.primary)
@@ -185,7 +185,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
               decoration: BoxDecoration(
-                color: (profile?.roleColor ?? AppColors.primary).withOpacity(0.12),
+                color: (profile?.roleColor ?? AppColors.primary).withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(profile?.roleLabel ?? '',
@@ -228,10 +228,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         margin: const EdgeInsets.only(bottom: 8),
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                         decoration: BoxDecoration(
-                          color: isCurr ? AppColors.primary.withOpacity(0.08) : Colors.transparent,
+                          color: isCurr ? AppColors.primary.withValues(alpha: 0.08) : Colors.transparent,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: isCurr ? AppColors.primary : Colors.grey.withOpacity(0.25),
+                            color: isCurr ? AppColors.primary : Colors.grey.withValues(alpha: 0.25),
                             width: isCurr ? 1.5 : 1,
                           ),
                         ),
@@ -304,8 +304,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           const SizedBox(height: 8),
 
-          Center(child: Text('v${AppConstants.appVersion} — ${AppConstants.appName}',
-            style: const TextStyle(color: AppColors.textSecondaryLight, fontSize: 12))),
+          const Center(child: Text('v${AppConstants.appVersion} — ${AppConstants.appName}',
+            style: TextStyle(color: AppColors.textSecondaryLight, fontSize: 12))),
           const SizedBox(height: 20),
         ],
       ),
@@ -368,3 +368,4 @@ class _InfoRow extends StatelessWidget {
     );
   }
 }
+

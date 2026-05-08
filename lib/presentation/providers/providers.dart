@@ -1,9 +1,6 @@
 // lib/presentation/providers/transporter_provider.dart
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:path_provider/path_provider.dart';
 import '../../core/constants/app_constants.dart';
 import '../../data/models/models.dart';
 import '../../data/services/supabase_service.dart';
@@ -222,7 +219,6 @@ class TransporterProvider extends ChangeNotifier {
 class NotificationProvider extends ChangeNotifier {
   List<NotificationModel> _notifications = [];
   int _unreadCount = 0;
-  RealtimeChannelRef? _sub;
 
   List<NotificationModel> get notifications => _notifications;
   int                      get unreadCount   => _unreadCount;

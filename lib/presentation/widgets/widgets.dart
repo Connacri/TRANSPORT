@@ -5,7 +5,6 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 // Imports regroupés
 import '../../data/models/models.dart';
-import '../../core/theme/app_theme.dart';
 
 
 class AppButton extends StatelessWidget {
@@ -144,7 +143,7 @@ class TransporterCard extends StatelessWidget {
               : null,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(isDark ? 0.2 : 0.06),
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.06),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),
@@ -165,7 +164,7 @@ class TransporterCard extends StatelessWidget {
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => Container(
                         width: 80, height: 70,
-                        color: AppColors.primary.withOpacity(0.1),
+                        color: AppColors.primary.withValues(alpha: 0.1),
                         child: const Icon(Icons.local_shipping, color: AppColors.primary),
                       ),
                     ),
@@ -191,12 +190,12 @@ class TransporterCard extends StatelessWidget {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                                 decoration: BoxDecoration(
-                                  color: AppColors.premiumGold.withOpacity(0.15),
+                                  color: AppColors.premiumGold.withValues(alpha: 0.15),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
-                                child: Row(
+                                child: const Row(
                                   mainAxisSize: MainAxisSize.min,
-                                  children: const [
+                                  children: [
                                     Icon(Icons.star, size: 11, color: AppColors.premiumGold),
                                     SizedBox(width: 3),
                                     Text('Premium', style: TextStyle(fontSize: 10, color: AppColors.premiumGold, fontWeight: FontWeight.w600)),
@@ -256,11 +255,11 @@ class TransporterCard extends StatelessWidget {
               Row(
                 children: [
                   if (transporter.offersHandling)
-                    _ChipBadge(icon: Icons.people_outline, label: 'Manutention'),
+                    const _ChipBadge(icon: Icons.people_outline, label: 'Manutention'),
                   if (transporter.offersHandling && transporter.offersTransportInsurance)
                     const SizedBox(width: 6),
                   if (transporter.offersTransportInsurance)
-                    _ChipBadge(icon: Icons.security_outlined, label: 'Assurance'),
+                    const _ChipBadge(icon: Icons.security_outlined, label: 'Assurance'),
                   const Spacer(),
                   if (transporter.basePricePerKm != null)
                     Text(
@@ -290,7 +289,7 @@ class _ChipBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.1),
+        color: AppColors.primary.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
@@ -398,7 +397,7 @@ class _TrackingMapState extends State<TrackingMap> {
                   Marker(
                     point: widget.pickupPoint!,
                     width: 40, height: 40,
-                    child: _MapPin(color: AppColors.success, icon: Icons.radio_button_checked),
+                    child: const _MapPin(color: AppColors.success, icon: Icons.radio_button_checked),
                   ),
 
                 // Destination
@@ -406,7 +405,7 @@ class _TrackingMapState extends State<TrackingMap> {
                   Marker(
                     point: widget.dropoffPoint!,
                     width: 40, height: 40,
-                    child: _MapPin(color: AppColors.error, icon: Icons.location_on),
+                    child: const _MapPin(color: AppColors.error, icon: Icons.location_on),
                   ),
 
                 // Position transporteur
@@ -436,7 +435,7 @@ class _MapPin extends StatelessWidget {
       decoration: BoxDecoration(
         color: color,
         shape: BoxShape.circle,
-        boxShadow: [BoxShadow(color: color.withOpacity(0.4), blurRadius: 8, offset: const Offset(0, 3))],
+        boxShadow: [BoxShadow(color: color.withValues(alpha: 0.4), blurRadius: 8, offset: const Offset(0, 3))],
       ),
       child: Icon(icon, color: Colors.white, size: 22),
     );
@@ -452,7 +451,7 @@ class _TransporterMarker extends StatelessWidget {
         shape: BoxShape.circle,
         border: Border.all(color: Colors.white, width: 3),
         boxShadow: [
-          BoxShadow(color: AppColors.primary.withOpacity(0.5), blurRadius: 12, offset: const Offset(0, 4)),
+          BoxShadow(color: AppColors.primary.withValues(alpha: 0.5), blurRadius: 12, offset: const Offset(0, 4)),
         ],
       ),
       child: const Icon(Icons.local_shipping, color: Colors.white, size: 28),
@@ -487,7 +486,7 @@ class RequestStatusStepper extends StatelessWidget {
           return Expanded(
             child: Container(
               height: 3,
-              color: isCompleted ? AppColors.primary : Colors.grey.withOpacity(0.3),
+              color: isCompleted ? AppColors.primary : Colors.grey.withValues(alpha: 0.3),
             ),
           );
         }
@@ -502,7 +501,7 @@ class RequestStatusStepper extends StatelessWidget {
             Container(
               width: 36, height: 36,
               decoration: BoxDecoration(
-                color: isDone || isCurr ? AppColors.primary : Colors.grey.withOpacity(0.2),
+                color: isDone || isCurr ? AppColors.primary : Colors.grey.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
               child: Icon(step.icon, size: 18, color: isDone || isCurr ? Colors.white : Colors.grey),
@@ -519,4 +518,5 @@ class RequestStatusStepper extends StatelessWidget {
     );
   }
 }
+
 

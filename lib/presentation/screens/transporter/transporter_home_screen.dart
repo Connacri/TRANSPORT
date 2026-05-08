@@ -7,7 +7,6 @@ import '../../../data/models/models.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/transport_provider.dart';
 import '../../providers/providers.dart';
-import '../../widgets/widgets.dart';
 
 class TransporterHomeScreen extends StatefulWidget {
   const TransporterHomeScreen({super.key});
@@ -59,7 +58,6 @@ class _TransporterHomeScreenState extends State<TransporterHomeScreen> {
     Navigator.pop(context);
     final transport  = context.read<TransportProvider>();
     final transProv  = context.read<TransporterProvider>();
-    final auth       = context.read<AuthProvider>();
 
     final ok = await transport.acceptRequest(
       requestId: req.id,
@@ -74,8 +72,8 @@ class _TransporterHomeScreenState extends State<TransporterHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final auth      = context.watch<AuthProvider>();
     final transProv = context.watch<TransporterProvider>();
+    final auth      = context.watch<AuthProvider>();
     final transport = context.watch<TransportProvider>();
     final notifProv = context.watch<NotificationProvider>();
     final theme     = Theme.of(context);
@@ -123,7 +121,7 @@ class _TransporterHomeScreenState extends State<TransporterHomeScreen> {
 
             // ── ALERTE VALIDATION ────────────────────────────────
             if (t != null && !t.isValidated)
-              _AlertBanner(
+              const _AlertBanner(
                 icon: Icons.pending_outlined,
                 title: 'En attente de validation',
                 subtitle: 'Votre profil est en cours d\'examen par notre équipe.',
@@ -197,7 +195,7 @@ class _TransporterHomeScreenState extends State<TransporterHomeScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: _TransporterBottomNav(currentIndex: 0),
+      bottomNavigationBar: const _TransporterBottomNav(currentIndex: 0),
     );
   }
 
@@ -237,7 +235,7 @@ class _StatusCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: (isAvailable ? AppColors.success : Colors.grey).withOpacity(0.3),
+            color: (isAvailable ? AppColors.success : Colors.grey).withValues(alpha: 0.3),
             blurRadius: 20, offset: const Offset(0, 8),
           ),
         ],
@@ -257,14 +255,14 @@ class _StatusCard extends StatelessWidget {
                   isAvailable
                       ? 'Vous êtes visible par les clients'
                       : 'Vous n\'apparaissez pas dans la liste',
-                  style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 13),
+                  style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 13),
                 ),
                 if (!isValidated) ...[
                   const SizedBox(height: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: const Text('⏳ En attente validation admin', style: TextStyle(color: Colors.white, fontSize: 11)),
@@ -277,7 +275,7 @@ class _StatusCard extends StatelessWidget {
             value: isAvailable,
             onChanged: isValidated ? (_) => onToggle() : null,
             activeColor: Colors.white,
-            activeTrackColor: Colors.white.withOpacity(0.4),
+            activeTrackColor: Colors.white.withValues(alpha: 0.4),
           ),
         ],
       ),
@@ -295,9 +293,9 @@ class _BadgeCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: transporter.badgeColor.withOpacity(0.1),
+        color: transporter.badgeColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: transporter.badgeColor.withOpacity(0.4)),
+        border: Border.all(color: transporter.badgeColor.withValues(alpha: 0.4)),
       ),
       child: Row(
         children: [
@@ -349,7 +347,7 @@ class _CompletionScore extends StatelessWidget {
             borderRadius: BorderRadius.circular(6),
             child: LinearProgressIndicator(
               value: score / 100,
-              backgroundColor: Colors.grey.withOpacity(0.2),
+              backgroundColor: Colors.grey.withValues(alpha: 0.2),
               valueColor: AlwaysStoppedAnimation(color),
               minHeight: 8,
             ),
@@ -388,7 +386,7 @@ class _MissingDocsList extends StatelessWidget {
           spacing: 6, runSpacing: 4,
           children: missing.map((m) => Chip(
             label: Text(m, style: const TextStyle(fontSize: 11)),
-            backgroundColor: AppColors.error.withOpacity(0.1),
+            backgroundColor: AppColors.error.withValues(alpha: 0.1),
             side: const BorderSide(color: AppColors.error, width: 0.5),
             padding: EdgeInsets.zero,
             visualDensity: VisualDensity.compact,
@@ -429,7 +427,7 @@ class _StatItem extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
+        color: color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
@@ -459,9 +457,9 @@ class _ActionCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.08),
+          color: color.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withOpacity(0.2)),
+          border: Border.all(color: color.withValues(alpha: 0.2)),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -491,15 +489,15 @@ class _SectionCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.08),
+          color: color.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withOpacity(0.2)),
+          border: Border.all(color: color.withValues(alpha: 0.2)),
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(color: color.withOpacity(0.15), shape: BoxShape.circle),
+              decoration: BoxDecoration(color: color.withValues(alpha: 0.15), shape: BoxShape.circle),
               child: Icon(icon, color: color, size: 24),
             ),
             const SizedBox(width: 16),
@@ -536,9 +534,9 @@ class _AlertBanner extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: color.withOpacity(0.4)),
+          border: Border.all(color: color.withValues(alpha: 0.4)),
         ),
         child: Row(
           children: [
@@ -579,12 +577,12 @@ class _NewRequestBottomSheet extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.withOpacity(0.3), borderRadius: BorderRadius.circular(2))),
+          Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(2))),
           const SizedBox(height: 20),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
+              color: AppColors.primary.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.local_shipping_outlined, color: AppColors.primary, size: 36),
@@ -602,13 +600,13 @@ class _NewRequestBottomSheet extends StatelessWidget {
           if (request.totalPrice != null)
             _InfoRow(icon: Icons.payments_outlined, label: 'Prix total', value: '${request.totalPrice!.toStringAsFixed(0)} ${request.currency}', color: AppColors.primary),
           if (request.needsHandling)
-            Padding(
-              padding: const EdgeInsets.only(top: 10),
+            const Padding(
+              padding: EdgeInsets.only(top: 10),
               child: _InfoRow(icon: Icons.people_outline, label: 'Manutention', value: 'Demandée', color: AppColors.warning),
             ),
           if (request.needsTransportInsurance)
-            Padding(
-              padding: const EdgeInsets.only(top: 10),
+            const Padding(
+              padding: EdgeInsets.only(top: 10),
               child: _InfoRow(icon: Icons.security_outlined, label: 'Assurance', value: 'Demandée', color: AppColors.info),
             ),
           const SizedBox(height: 24),
@@ -681,7 +679,7 @@ class _RatingsSheet extends StatelessWidget {
         child: Column(
           children: [
             const SizedBox(height: 12),
-            Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.withOpacity(0.3), borderRadius: BorderRadius.circular(2))),
+            Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(2))),
             const SizedBox(height: 16),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -714,7 +712,7 @@ class _RatingsSheet extends StatelessWidget {
                         return ListTile(
                           contentPadding: EdgeInsets.zero,
                           leading: CircleAvatar(
-                            backgroundColor: AppColors.primary.withOpacity(0.15),
+                            backgroundColor: AppColors.primary.withValues(alpha: 0.15),
                             child: Text(r.client?.displayName.substring(0, 1).toUpperCase() ?? '?',
                               style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700)),
                           ),
@@ -725,7 +723,7 @@ class _RatingsSheet extends StatelessWidget {
                               ...List.generate(5, (idx) => Icon(
                                 Icons.star,
                                 size: 14,
-                                color: idx < r.score ? AppColors.warning : Colors.grey.withOpacity(0.3),
+                                color: idx < r.score ? AppColors.warning : Colors.grey.withValues(alpha: 0.3),
                               )),
                             ],
                           ),
@@ -767,3 +765,4 @@ class _TransporterBottomNav extends StatelessWidget {
     );
   }
 }
+

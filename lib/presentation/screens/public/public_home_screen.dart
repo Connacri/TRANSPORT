@@ -8,7 +8,6 @@ import 'package:geolocator/geolocator.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/models/models.dart';
 import '../../../data/services/tracking_service.dart';
-import '../../providers/auth_provider.dart';
 import '../../providers/transport_provider.dart';
 import '../../providers/providers.dart';
 import '../../widgets/widgets.dart';
@@ -55,7 +54,6 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> with SingleTickerPr
 
   @override
   Widget build(BuildContext context) {
-    final auth      = context.watch<AuthProvider>();
     final transport = context.watch<TransportProvider>();
     final notifProv = context.watch<NotificationProvider>();
     final theme     = Theme.of(context);
@@ -122,18 +120,18 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> with SingleTickerPr
                           children: [
                             const Icon(Icons.search, color: AppColors.textSecondaryLight),
                             const SizedBox(width: 12),
-                            Text('Destination...', style: TextStyle(color: AppColors.textSecondaryLight)),
+                            const Text('Destination...', style: TextStyle(color: AppColors.textSecondaryLight)),
                             const Spacer(),
                             if (_myPosition != null)
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: AppColors.primary.withOpacity(0.1),
+                                  color: AppColors.primary.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: Row(
+                                child: const Row(
                                   mainAxisSize: MainAxisSize.min,
-                                  children: const [
+                                  children: [
                                     Icon(Icons.my_location, size: 13, color: AppColors.primary),
                                     SizedBox(width: 4),
                                     Text('Ma position', style: TextStyle(fontSize: 11, color: AppColors.primary)),
@@ -168,7 +166,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> with SingleTickerPr
                             decoration: BoxDecoration(
                               color: isSelected ? AppColors.primary : (isDark ? AppColors.cardDark : Colors.white),
                               borderRadius: BorderRadius.circular(20),
-                              border: isSelected ? null : Border.all(color: Colors.grey.withOpacity(0.3)),
+                              border: isSelected ? null : Border.all(color: Colors.grey.withValues(alpha: 0.3)),
                             ),
                             child: Center(
                               child: Text(vt, style: TextStyle(
@@ -223,7 +221,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen> with SingleTickerPr
           ],
         ),
       ),
-      bottomNavigationBar: _BottomNav(currentIndex: 0),
+      bottomNavigationBar: const _BottomNav(currentIndex: 0),
     );
   }
 }
@@ -262,7 +260,7 @@ class _MapView extends StatelessWidget {
                         color: AppColors.info,
                         shape: BoxShape.circle,
                         border: Border.all(color: Colors.white, width: 3),
-                        boxShadow: [BoxShadow(color: AppColors.info.withOpacity(0.4), blurRadius: 8)],
+                        boxShadow: [BoxShadow(color: AppColors.info.withValues(alpha: 0.4), blurRadius: 8)],
                       ),
                     ),
                   ),
@@ -281,7 +279,7 @@ class _MapView extends StatelessWidget {
                             shape: BoxShape.circle,
                             border: Border.all(color: Colors.white, width: 2.5),
                             boxShadow: [BoxShadow(
-                              color: (t.isPremium ? AppColors.premiumGold : AppColors.primary).withOpacity(0.5),
+                              color: (t.isPremium ? AppColors.premiumGold : AppColors.primary).withValues(alpha: 0.5),
                               blurRadius: 10,
                             )],
                           ),
@@ -339,7 +337,7 @@ class _ListView extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.local_shipping_outlined, size: 64, color: Colors.grey.withOpacity(0.4)),
+            Icon(Icons.local_shipping_outlined, size: 64, color: Colors.grey.withValues(alpha: 0.4)),
             const SizedBox(height: 16),
             Text('Aucun transporteur disponible', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Colors.grey)),
             const SizedBox(height: 8),
@@ -399,7 +397,7 @@ class _ToggleView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey.withOpacity(0.15),
+        color: Colors.grey.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -434,3 +432,4 @@ class _Btn extends StatelessWidget {
     );
   }
 }
+

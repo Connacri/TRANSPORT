@@ -1,6 +1,5 @@
 // lib/presentation/screens/transporter/premium_store_screen.dart
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../data/models/models.dart';
@@ -32,7 +31,6 @@ class _PremiumStoreScreenState extends State<PremiumStoreScreen> {
   @override
   Widget build(BuildContext context) {
     final transProv = context.watch<TransporterProvider>();
-    final theme     = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Options Premium')),
@@ -86,9 +84,9 @@ class _PremiumStoreScreenState extends State<PremiumStoreScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.info.withOpacity(0.08),
+              color: AppColors.info.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.info.withOpacity(0.3)),
+              border: Border.all(color: AppColors.info.withValues(alpha: 0.3)),
             ),
             child: const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -120,9 +118,9 @@ class _CurrentPremiumCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.premiumGold.withOpacity(0.1),
+        color: AppColors.premiumGold.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.premiumGold.withOpacity(0.5), width: 1.5),
+        border: Border.all(color: AppColors.premiumGold.withValues(alpha: 0.5), width: 1.5),
       ),
       child: Row(
         children: [
@@ -179,7 +177,7 @@ class _PremiumOptionCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).cardTheme.color,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _color.withOpacity(0.25)),
+        border: Border.all(color: _color.withValues(alpha: 0.25)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -188,7 +186,7 @@ class _PremiumOptionCard extends StatelessWidget {
             Container(
               width: 52, height: 52,
               decoration: BoxDecoration(
-                color: _color.withOpacity(0.12),
+                color: _color.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
               ),
               child: Icon(_icon, color: _color, size: 26),
@@ -327,7 +325,6 @@ class _SupervisorAddTransporterScreenState extends State<SupervisorAddTransporte
     if (_emailCtrl.text.isEmpty) return;
     setState(() => _loading = true);
 
-    final auth    = context.read<AuthProvider>();
     final supProv = context.read<SupervisorProvider>();
 
     final ok = await supProv.addTransporterByReferral(
@@ -384,9 +381,9 @@ class _SupervisorAddTransporterScreenState extends State<SupervisorAddTransporte
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.warning.withOpacity(0.08),
+              color: AppColors.warning.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.warning.withOpacity(0.3)),
+              border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -429,7 +426,7 @@ class _SupervisorAddTransporterScreenState extends State<SupervisorAddTransporte
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
-                      color: (r.isActive ? AppColors.success : AppColors.error).withOpacity(0.1),
+                      color: (r.isActive ? AppColors.success : AppColors.error).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(r.isActive ? 'Actif' : 'Inactif',
@@ -457,9 +454,9 @@ class _CapacityCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.06),
+        color: AppColors.primary.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -476,7 +473,7 @@ class _CapacityCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(6),
             child: LinearProgressIndicator(
               value: pct, minHeight: 8,
-              backgroundColor: Colors.grey.withOpacity(0.2),
+              backgroundColor: Colors.grey.withValues(alpha: 0.2),
               valueColor: AlwaysStoppedAnimation(pct > 0.9 ? AppColors.error : AppColors.primary),
             ),
           ),
@@ -567,7 +564,7 @@ class _AdminSupervisorCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).cardTheme.color,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _tierColor.withOpacity(0.35)),
+        border: Border.all(color: _tierColor.withValues(alpha: 0.35)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(14),
@@ -579,7 +576,7 @@ class _AdminSupervisorCard extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 22,
-                  backgroundColor: _tierColor.withOpacity(0.15),
+                  backgroundColor: _tierColor.withValues(alpha: 0.15),
                   child: Text(supervisor.profile?.displayName.substring(0, 1).toUpperCase() ?? 'S',
                     style: TextStyle(color: _tierColor, fontWeight: FontWeight.w800, fontSize: 16)),
                 ),
@@ -632,7 +629,7 @@ class _AdminSupervisorCard extends StatelessWidget {
                       margin: const EdgeInsets.only(right: 6),
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                       decoration: BoxDecoration(
-                        color: isCurr ? color.withOpacity(0.15) : Colors.transparent,
+                        color: isCurr ? color.withValues(alpha: 0.15) : Colors.transparent,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(color: color, width: isCurr ? 1.5 : 1),
                       ),
@@ -651,7 +648,7 @@ class _AdminSupervisorCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: AppColors.error.withOpacity(0.08),
+                  color: AppColors.error.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(children: [
@@ -679,7 +676,7 @@ class _MiniStat extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
-          color: AppColors.primary.withOpacity(0.06),
+          color: AppColors.primary.withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Column(
@@ -692,3 +689,4 @@ class _MiniStat extends StatelessWidget {
     );
   }
 }
+

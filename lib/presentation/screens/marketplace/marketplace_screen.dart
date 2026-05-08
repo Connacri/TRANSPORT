@@ -10,7 +10,6 @@ import '../../../data/models/models.dart';
 import '../../../data/services/supabase_service.dart';
 import '../../../main.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/providers.dart';
 
 class MarketplaceScreen extends StatefulWidget {
   const MarketplaceScreen({super.key});
@@ -67,7 +66,6 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
   @override
   Widget build(BuildContext context) {
     final market = context.watch<MarketplaceProvider>();
-    final auth   = context.watch<AuthProvider>();
     final theme  = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -299,7 +297,7 @@ class _TypeChip extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: selected ? AppColors.primary : Colors.grey.withOpacity(0.1),
+          color: selected ? AppColors.primary : Colors.grey.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(label, style: TextStyle(
@@ -329,7 +327,7 @@ class _CategoryItem extends StatelessWidget {
         width: 72,
         margin: const EdgeInsets.only(right: 8, bottom: 6, top: 4),
         decoration: BoxDecoration(
-          color: selected ? color.withOpacity(0.15) : Theme.of(context).cardTheme.color,
+          color: selected ? color.withValues(alpha: 0.15) : Theme.of(context).cardTheme.color,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: selected ? color : Colors.transparent, width: 1.5),
         ),
@@ -366,7 +364,7 @@ class _ListingCard extends StatelessWidget {
           color: isDark ? AppColors.cardDark : Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: listing.isPremium ? Border.all(color: AppColors.premiumGold, width: 1.5) : null,
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(isDark ? 0.15 : 0.06), blurRadius: 10, offset: const Offset(0, 3))],
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.06), blurRadius: 10, offset: const Offset(0, 3))],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -382,7 +380,7 @@ class _ListingCard extends StatelessWidget {
                         ? CachedNetworkImage(
                             imageUrl: listing.imagesUrls.first,
                             width: double.infinity, fit: BoxFit.cover,
-                            placeholder: (_, __) => Container(color: AppColors.primary.withOpacity(0.08),
+                            placeholder: (_, __) => Container(color: AppColors.primary.withValues(alpha: 0.08),
                               child: const Center(child: CircularProgressIndicator(strokeWidth: 2))),
                             errorWidget: (_, __, ___) => _Placeholder(type: listing.type),
                           )
@@ -390,9 +388,9 @@ class _ListingCard extends StatelessWidget {
                   ),
                   // Badges
                   Positioned(top: 8, left: 8, child: Row(children: [
-                    if (listing.isPremium) _Badge(label: '⭐', color: AppColors.premiumGold),
+                    if (listing.isPremium) const _Badge(label: '⭐', color: AppColors.premiumGold),
                     if (listing.isVerified) const SizedBox(width: 4),
-                    if (listing.isVerified) _Badge(label: '✓', color: AppColors.success),
+                    if (listing.isVerified) const _Badge(label: '✓', color: AppColors.success),
                   ])),
                   Positioned(top: 8, right: 8,
                     child: _Badge(
@@ -453,7 +451,7 @@ class _Placeholder extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      color: AppColors.primary.withOpacity(0.08),
+      color: AppColors.primary.withValues(alpha: 0.08),
       child: Center(child: Text(type == ListingType.product ? '📦' : '🔧', style: const TextStyle(fontSize: 40))),
     );
   }
@@ -481,11 +479,12 @@ class _ShimmerCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Shimmer.fromColors(
-      baseColor: Colors.grey.withOpacity(0.15),
-      highlightColor: Colors.grey.withOpacity(0.05),
+      baseColor: Colors.grey.withValues(alpha: 0.15),
+      highlightColor: Colors.grey.withValues(alpha: 0.05),
       child: Container(
         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
       ),
     );
   }
 }
+

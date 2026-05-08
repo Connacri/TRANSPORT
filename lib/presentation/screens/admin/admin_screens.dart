@@ -8,13 +8,8 @@ import '../../providers/providers.dart';
 import '../../widgets/widgets.dart';
 // Imports
 import 'package:go_router/go_router.dart';
-import 'package:provider/provider.dart';
 import 'package:latlong2/latlong.dart';
-import '../../../data/models/models.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../providers/auth_provider.dart';
 import '../../providers/transport_provider.dart';
-import '../../widgets/widgets.dart';
 
 
 class AdminBusinessRulesScreen extends StatelessWidget {
@@ -145,7 +140,7 @@ class _RuleTile extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text('$value$suffix',
@@ -302,7 +297,7 @@ class _PendingTransporterCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).cardTheme.color,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.warning.withOpacity(0.3)),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
@@ -316,7 +311,7 @@ class _PendingTransporterCard extends StatelessWidget {
                   backgroundImage: transporter.facePhotoUrl != null
                       ? NetworkImage(transporter.facePhotoUrl!)
                       : null,
-                  backgroundColor: AppColors.primary.withOpacity(0.15),
+                  backgroundColor: AppColors.primary.withValues(alpha: 0.15),
                   child: transporter.facePhotoUrl == null
                       ? const Icon(Icons.person, color: AppColors.primary)
                       : null,
@@ -338,7 +333,7 @@ class _PendingTransporterCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppColors.warning.withOpacity(0.1),
+                    color: AppColors.warning.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text('${transporter.validationScore}%',
@@ -358,7 +353,7 @@ class _PendingTransporterCard extends StatelessWidget {
                   child: Image.network(transporter.vehiclePhotoUrl,
                     width: 100, height: 70, fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => Container(width: 100, height: 70,
-                      color: AppColors.primary.withOpacity(0.1),
+                      color: AppColors.primary.withValues(alpha: 0.1),
                       child: const Icon(Icons.local_shipping, color: AppColors.primary)),
                   ),
                 ),
@@ -387,7 +382,7 @@ class _PendingTransporterCard extends StatelessWidget {
             child: Wrap(
               spacing: 6, runSpacing: 6,
               children: [
-                _DocChip(label: 'Photo', ok: true),
+                const _DocChip(label: 'Photo', ok: true),
                 _DocChip(label: 'Visage', ok: transporter.facePhotoUrl != null),
                 _DocChip(label: 'Permis', ok: transporter.licensePhotoUrl != null),
                 _DocChip(label: 'Carte grise', ok: transporter.registrationPhotoUrl != null),
@@ -446,8 +441,8 @@ class _DocChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Chip(
       label: Text(label, style: TextStyle(fontSize: 11, color: ok ? AppColors.success : AppColors.error)),
-      backgroundColor: (ok ? AppColors.success : AppColors.error).withOpacity(0.1),
-      side: BorderSide(color: (ok ? AppColors.success : AppColors.error).withOpacity(0.4)),
+      backgroundColor: (ok ? AppColors.success : AppColors.error).withValues(alpha: 0.1),
+      side: BorderSide(color: (ok ? AppColors.success : AppColors.error).withValues(alpha: 0.4)),
       avatar: Icon(ok ? Icons.check : Icons.close, size: 14, color: ok ? AppColors.success : AppColors.error),
       padding: EdgeInsets.zero,
       visualDensity: VisualDensity.compact,
@@ -514,7 +509,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         shape: BoxShape.circle,
-                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8)],
+                        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 8)],
                       ),
                       child: const Icon(Icons.arrow_back, size: 20),
                     ),
@@ -525,7 +520,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
                     decoration: BoxDecoration(
                       color: request.statusColor,
                       borderRadius: BorderRadius.circular(20),
-                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 8)],
+                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 8)],
                     ),
                     child: Text(request.statusLabel,
                       style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13)),
@@ -542,14 +537,14 @@ class _TrackingScreenState extends State<TrackingScreen> {
               decoration: BoxDecoration(
                 color: theme.scaffoldBackgroundColor,
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 20)],
+                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 20)],
               ),
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(width: 40, height: 4,
-                    decoration: BoxDecoration(color: Colors.grey.withOpacity(0.3), borderRadius: BorderRadius.circular(2))),
+                    decoration: BoxDecoration(color: Colors.grey.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(2))),
                   const SizedBox(height: 16),
 
                   // Stepper statut
@@ -560,7 +555,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
                   _AddressRow(icon: Icons.radio_button_checked, color: AppColors.success,
                     label: 'Départ', address: request.pickupAddress ?? 'Position actuelle'),
                   Container(margin: const EdgeInsets.only(left: 11), width: 2, height: 20,
-                    color: Colors.grey.withOpacity(0.3)),
+                    color: Colors.grey.withValues(alpha: 0.3)),
                   _AddressRow(icon: Icons.location_on, color: AppColors.error,
                     label: 'Arrivée', address: request.dropoffAddress ?? 'Destination'),
 
@@ -638,7 +633,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
   }
 
   void _showRatingDialog(BuildContext context, TransportRequestModel req) {
-    int _score = 5;
+    int score = 5;
     final ctrl = TextEditingController();
 
     showDialog(
@@ -652,10 +647,10 @@ class _TrackingScreenState extends State<TrackingScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(5, (i) => GestureDetector(
-                  onTap: () => setState(() => _score = i + 1),
+                  onTap: () => setState(() => score = i + 1),
                   child: Icon(Icons.star,
                     size: 36,
-                    color: i < _score ? AppColors.warning : Colors.grey.withOpacity(0.3),
+                    color: i < score ? AppColors.warning : Colors.grey.withValues(alpha: 0.3),
                   ),
                 )),
               ),
@@ -673,7 +668,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
                   requestId: req.id,
                   transporterId: req.transporterId!,
                   clientId: req.clientId,
-                  score: _score,
+                  score: score,
                   comment: ctrl.text.isEmpty ? null : ctrl.text,
                 );
                 if (context.mounted) context.pop();
@@ -724,7 +719,7 @@ class _InfoChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.08),
+        color: AppColors.primary.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -738,4 +733,5 @@ class _InfoChip extends StatelessWidget {
     );
   }
 }
+
 
