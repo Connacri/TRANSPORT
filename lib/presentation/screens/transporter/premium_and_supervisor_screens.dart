@@ -594,7 +594,7 @@ class _AdminSupervisorCard extends StatelessWidget {
                 ),
                 Switch.adaptive(
                   value: supervisor.isCommissionActive,
-                  activeColor: AppColors.success,
+                  activeTrackColor: AppColors.success,
                   onChanged: onToggleCommission,
                 ),
               ],
@@ -689,4 +689,3 @@ class _MiniStat extends StatelessWidget {
     );
   }
 }
-

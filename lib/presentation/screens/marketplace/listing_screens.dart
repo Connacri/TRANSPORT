@@ -345,14 +345,19 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+    
+    final sm = ScaffoldMessenger.of(context);
+    final nav = context.pop;
+
     if (_images.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      sm.showSnackBar(
         const SnackBar(content: Text('Ajoutez au moins une photo'), backgroundColor: AppColors.error));
       return;
     }
 
     setState(() => _loading = true);
     final auth = context.read<AuthProvider>();
+    final marketplace = context.read<MarketplaceProvider>();
 
     try {
       // Upload images
@@ -367,7 +372,7 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
         urls.add(url);
       }
 
-      final ok = await context.read<MarketplaceProvider>().createListing(
+      final ok = await marketplace.createListing(
         sellerId: auth.profile!.id,
         title: _titleCtrl.text.trim(),
         description: _descCtrl.text.trim().isEmpty ? null : _descCtrl.text.trim(),
@@ -380,17 +385,14 @@ class _CreateListingScreenState extends State<CreateListingScreen> {
         city: _cityCtrl.text.trim().isEmpty ? null : _cityCtrl.text.trim(),
       );
 
-      if (!mounted) return;
       if (ok) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        sm.showSnackBar(
           const SnackBar(content: Text('✅ Annonce publiée !'), backgroundColor: AppColors.success));
-        context.pop();
+        nav();
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+      sm.showSnackBar(
         SnackBar(content: Text('Erreur : $e'), backgroundColor: AppColors.error));
-      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }

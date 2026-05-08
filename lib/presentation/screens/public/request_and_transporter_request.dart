@@ -548,7 +548,9 @@ class _TransporterRequestScreenState extends State<TransporterRequestScreen> {
                   requestId: active.id,
                   clientId: active.clientId,
                 );
-                if (mounted) context.pop();
+                if (mounted) {
+                  if (context.mounted) context.pop();
+                }
               },
             ),
             const SizedBox(height: 10),
@@ -562,7 +564,9 @@ class _TransporterRequestScreenState extends State<TransporterRequestScreen> {
                   reason: 'Annulé par le transporteur',
                   otherPartyProfileId: active.clientId,
                 );
-                if (mounted) context.pop();
+                if (mounted) {
+                  if (context.mounted) context.pop();
+                }
               },
             ),
           ],
@@ -604,5 +608,3 @@ class _InfoCard extends StatelessWidget {
     );
   }
 }
-
-

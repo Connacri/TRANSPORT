@@ -290,14 +290,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Annuler')),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-                      onPressed: () => Navigator.pop(context, true),
+                      onPressed: () async {
+                        Navigator.pop(context, true);
+                      },
                       child: const Text('Déconnexion'),
                     ),
                   ],
                 ),
               );
               if (ok == true && mounted) {
-                await context.read<AuthProvider>().signOut();
+                if (context.mounted) {
+                  await context.read<AuthProvider>().signOut();
+                }
               }
             },
           ),
