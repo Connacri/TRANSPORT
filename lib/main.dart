@@ -50,9 +50,6 @@ void main() async {
     DeviceOrientation.landscapeRight,
   ]);
 
-  // Firebase
-  await Firebase.initializeApp();
-
   // Supabase
   await Supabase.initialize(
     url: AppConstants.supabaseUrl,

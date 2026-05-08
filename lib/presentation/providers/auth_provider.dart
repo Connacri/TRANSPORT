@@ -1,6 +1,6 @@
 // lib/presentation/providers/auth_provider.dart
 import 'dart:async';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/models/models.dart';
@@ -63,7 +63,7 @@ class AuthProvider extends ChangeNotifier {
     // Enregistrer FCM Token
     final token = await FirebaseService.instance.getFcmToken();
     if (token != null) {
-      final platform = Theme.of(_context!).platform == TargetPlatform.android ? 'android' : 'windows';
+      final platform = defaultTargetPlatform == TargetPlatform.android ? 'android' : 'windows';
       await SupabaseService.instance.upsertFcmToken(
         profileId: profile.id,
         token: token,
@@ -74,9 +74,6 @@ class AuthProvider extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('user_role', profile.role.name);
   }
-
-  BuildContext? _context;
-  void setContext(BuildContext ctx) => _context = ctx;
 
   // ─── SIGNUP EMAIL ─────────────────────────────────────────────
 
