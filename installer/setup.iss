@@ -1,7 +1,7 @@
 #define AppName "TransportHub"
 #define AppVersion "1.0.0.0"
 #define AppPublisher "TransportHub"
-#define AppExeName "transport_hub.exe"
+#define AppExeName "trasport.exe"
 
 [Setup]
 AppId={{8a7c3b1f-2d4e-5a6f-9b0c-1d2e3f4a5b6c}}
