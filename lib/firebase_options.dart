@@ -46,6 +46,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '263476182469',
     projectId: 'transport-4b377',
     authDomain: 'transport-4b377.firebaseapp.com',
+    databaseURL: 'https://transport-4b377-default-rtdb.firebaseio.com',
     storageBucket: 'transport-4b377.firebasestorage.app',
     measurementId: 'G-KZJ2WP641W',
   );
@@ -55,6 +56,7 @@ class DefaultFirebaseOptions {
     appId: '1:263476182469:android:ddc5a77e0596c38b651fac',
     messagingSenderId: '263476182469',
     projectId: 'transport-4b377',
+    databaseURL: 'https://transport-4b377-default-rtdb.firebaseio.com',
     storageBucket: 'transport-4b377.firebasestorage.app',
   );
 
@@ -63,6 +65,7 @@ class DefaultFirebaseOptions {
     appId: '1:263476182469:ios:fd89ba6fa39c33dd651fac',
     messagingSenderId: '263476182469',
     projectId: 'transport-4b377',
+    databaseURL: 'https://transport-4b377-default-rtdb.firebaseio.com',
     storageBucket: 'transport-4b377.firebasestorage.app',
     androidClientId: '263476182469-1160v8ibbqliedcnrbs2vkbs462b4rc1.apps.googleusercontent.com',
     iosClientId: '263476182469-k1352c2tm32n609a7lcocar0grq51h4i.apps.googleusercontent.com',
@@ -74,6 +77,7 @@ class DefaultFirebaseOptions {
     appId: '1:263476182469:ios:fd89ba6fa39c33dd651fac',
     messagingSenderId: '263476182469',
     projectId: 'transport-4b377',
+    databaseURL: 'https://transport-4b377-default-rtdb.firebaseio.com',
     storageBucket: 'transport-4b377.firebasestorage.app',
     androidClientId: '263476182469-1160v8ibbqliedcnrbs2vkbs462b4rc1.apps.googleusercontent.com',
     iosClientId: '263476182469-k1352c2tm32n609a7lcocar0grq51h4i.apps.googleusercontent.com',
@@ -86,6 +90,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '263476182469',
     projectId: 'transport-4b377',
     authDomain: 'transport-4b377.firebaseapp.com',
+    databaseURL: 'https://transport-4b377-default-rtdb.firebaseio.com',
     storageBucket: 'transport-4b377.firebasestorage.app',
     measurementId: 'G-F1EQTBHHY7',
   );

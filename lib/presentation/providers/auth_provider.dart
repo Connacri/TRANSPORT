@@ -43,36 +43,41 @@ class AuthProvider extends ChangeNotifier {
       _profile = await SupabaseService.instance.getProfileByFirebaseUid(user.uid);
 
       if (_profile == null) {
-        // Profil inexistant → attente de la saisie du rôle (écran register step 2)
+        // Profil inexistant → peut arriver si le crash survient entre Firebase et Supabase
+        // On laisse l'utilisateur sur l'écran de login ou register qui détectera l'absence de profil
         _status = AuthStatus.unauthenticated;
       } else {
         await _postLoginActions(_profile!);
         _status = AuthStatus.authenticated;
       }
     } catch (e) {
-      _status = AuthStatus.error;
-      _errorMessage = e.toString();
+      _setError(_mapError(e));
     }
 
     notifyListeners();
   }
 
   Future<void> _postLoginActions(ProfileModel profile) async {
-    await SupabaseService.instance.updateLastSeen(profile.id);
+    try {
+      await SupabaseService.instance.updateLastSeen(profile.id);
 
-    // Enregistrer FCM Token
-    final token = await FirebaseService.instance.getFcmToken();
-    if (token != null) {
-      final platform = defaultTargetPlatform == TargetPlatform.android ? 'android' : 'windows';
-      await SupabaseService.instance.upsertFcmToken(
-        profileId: profile.id,
-        token: token,
-        platform: platform,
-      );
+      // Enregistrer FCM Token
+      final token = await FirebaseService.instance.getFcmToken();
+      if (token != null) {
+        final platform = defaultTargetPlatform == TargetPlatform.android ? 'android' : 'windows';
+        await SupabaseService.instance.upsertFcmToken(
+          profileId: profile.id,
+          token: token,
+          platform: platform,
+        );
+      }
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('user_role', profile.role.name);
+    } catch (e) {
+      debugPrint('Error in postLoginActions: $e');
+      // On ne bloque pas l'auth pour ça
     }
-
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('user_role', profile.role.name);
   }
 
   // ─── SIGNUP EMAIL ─────────────────────────────────────────────
@@ -91,7 +96,12 @@ class AuthProvider extends ChangeNotifier {
         email: email,
         password: password,
       );
-      await FirebaseService.instance.updateDisplayName(fullName);
+      
+      try {
+        await FirebaseService.instance.updateDisplayName(fullName);
+      } catch (e) {
+        debugPrint('Failed to update display name: $e');
+      }
 
       _profile = await SupabaseService.instance.createProfile(
         firebaseUid: credential.user!.uid,
@@ -107,7 +117,12 @@ class AuthProvider extends ChangeNotifier {
         await SupabaseService.instance.createSupervisor(_profile!.id, regionId: regionId);
       }
 
-      await FirebaseService.instance.sendEmailVerification();
+      try {
+        await FirebaseService.instance.sendEmailVerification();
+      } catch (e) {
+        debugPrint('Failed to send verification email: $e');
+      }
+      
       await _postLoginActions(_profile!);
 
       _status = AuthStatus.authenticated;
@@ -117,7 +132,7 @@ class AuthProvider extends ChangeNotifier {
       _setError(_mapFirebaseError(e));
       return false;
     } catch (e) {
-      _setError(e.toString());
+      _setError(_mapError(e));
       return false;
     }
   }
@@ -131,13 +146,13 @@ class AuthProvider extends ChangeNotifier {
     _setLoading();
     try {
       await FirebaseService.instance.signInWithEmail(email: email, password: password);
-      // _onAuthStateChanged gère la suite
+      // _onAuthStateChanged gère la suite (récupération profil Supabase)
       return true;
     } on FirebaseAuthException catch (e) {
       _setError(_mapFirebaseError(e));
       return false;
     } catch (e) {
-      _setError(e.toString());
+      _setError(_mapError(e));
       return false;
     }
   }
@@ -147,6 +162,7 @@ class AuthProvider extends ChangeNotifier {
   Future<({bool success, bool isNewUser})> signInWithGoogle({
     UserRole? roleIfNew,
     String? regionId,
+    String? phone,
   }) async {
     _setLoading();
     try {
@@ -163,7 +179,7 @@ class AuthProvider extends ChangeNotifier {
       final isNew = _profile == null;
       if (isNew) {
         if (roleIfNew == null) {
-          // Besoin de choisir le rôle
+          // Besoin de choisir le rôle sur l'écran Register
           _status = AuthStatus.unauthenticated;
           notifyListeners();
           return (success: true, isNewUser: true);
@@ -174,6 +190,7 @@ class AuthProvider extends ChangeNotifier {
           email: user.email!,
           role: roleIfNew,
           fullName: user.displayName,
+          phone: phone,
           regionId: regionId,
         );
 
@@ -187,7 +204,7 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       return (success: true, isNewUser: isNew);
     } catch (e) {
-      _setError(e.toString());
+      _setError(_mapError(e));
       return (success: false, isNewUser: false);
     }
   }
@@ -203,6 +220,9 @@ class AuthProvider extends ChangeNotifier {
       return true;
     } on FirebaseAuthException catch (e) {
       _setError(_mapFirebaseError(e));
+      return false;
+    } catch (e) {
+      _setError(_mapError(e));
       return false;
     }
   }
@@ -230,7 +250,7 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _setError(e.toString());
+      _setError(_mapError(e));
       return false;
     }
   }
@@ -244,7 +264,7 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      _setError(e.toString());
+      _setError(_mapError(e));
       return false;
     }
   }
@@ -252,11 +272,15 @@ class AuthProvider extends ChangeNotifier {
   // ─── LOGOUT ───────────────────────────────────────────────────
 
   Future<void> signOut() async {
-    await FirebaseService.instance.signOut();
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
-    _profile = null;
-    _status  = AuthStatus.unauthenticated;
+    try {
+      await FirebaseService.instance.signOut();
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear();
+      _profile = null;
+      _status  = AuthStatus.unauthenticated;
+    } catch (e) {
+      _setError('Erreur lors de la déconnexion');
+    }
     notifyListeners();
   }
 
@@ -289,8 +313,21 @@ class AuthProvider extends ChangeNotifier {
       case 'too-many-requests':     return 'Trop de tentatives. Réessayez plus tard';
       case 'network-request-failed':return 'Erreur réseau. Vérifiez votre connexion';
       case 'user-disabled':         return 'Ce compte a été désactivé';
-      default:                      return e.message ?? 'Une erreur s\'est produite';
+      case 'operation-not-allowed': return 'Opération non autorisée';
+      default:                      return e.message ?? 'Une erreur d\'authentification s\'est produite';
     }
+  }
+
+  String _mapError(dynamic e) {
+    if (e is FirebaseAuthException) return _mapFirebaseError(e);
+    final str = e.toString().toLowerCase();
+    if (str.contains('network') || str.contains('socket')) {
+      return 'Problème de connexion internet';
+    }
+    if (str.contains('postgrestexception')) {
+      return 'Erreur de base de données. Veuillez réessayer';
+    }
+    return 'Une erreur inattendue est survenue';
   }
 
   @override

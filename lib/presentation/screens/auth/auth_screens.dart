@@ -45,12 +45,16 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     if (!_formKey.currentState!.validate()) return;
     final auth = context.read<AuthProvider>();
     final ok = await auth.signInWithEmail(
-      email: _emailCtrl.text,
+      email: _emailCtrl.text.trim(),
       password: _passwordCtrl.text,
     );
     if (!ok && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(auth.errorMessage ?? 'Erreur de connexion'), backgroundColor: AppColors.error),
+        SnackBar(
+          content: Text(auth.errorMessage ?? 'Erreur de connexion'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
       );
     }
   }
@@ -63,7 +67,11 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       context.push('/register?google=true');
     } else if (!result.success && auth.errorMessage != null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(auth.errorMessage!), backgroundColor: AppColors.error),
+        SnackBar(
+          content: Text(auth.errorMessage!),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
       );
     }
   }
@@ -77,125 +85,127 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       body: SafeArea(
         child: FadeTransition(
           opacity: _fadeAnim,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 40),
-
-                  // Logo + titre
-                  Center(
-                    child: Column(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Logo + titre
+                    Column(
                       children: [
-                        Container(
-                          width: 80, height: 80,
-                          decoration: BoxDecoration(
-                            color: AppColors.primary,
-                            borderRadius: BorderRadius.circular(24),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.primary.withValues(alpha: 0.4),
-                                blurRadius: 20, offset: const Offset(0, 8),
-                              ),
-                            ],
+                        Hero(
+                          tag: 'app_logo',
+                          child: Container(
+                            width: 80, height: 80,
+                            decoration: BoxDecoration(
+                              color: AppColors.primary,
+                              borderRadius: BorderRadius.circular(24),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.primary.withValues(alpha: 0.4),
+                                  blurRadius: 20, offset: const Offset(0, 8),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(Icons.local_shipping_rounded, color: Colors.white, size: 44),
                           ),
-                          child: const Icon(Icons.local_shipping_rounded, color: Colors.white, size: 44),
                         ),
-                        const SizedBox(height: 20),
-                        Text('TransportHub', style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w700)),
-                        const SizedBox(height: 6),
-                        Text('Connectez-vous à votre compte', style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.textSecondaryLight)),
+                        const SizedBox(height: 24),
+                        Text('TransportHub', style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -0.5)),
+                        const SizedBox(height: 8),
+                        Text('Bienvenue sur votre plateforme de transport', textAlign: TextAlign.center, style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.textSecondaryLight)),
                       ],
                     ),
-                  ),
 
-                  const SizedBox(height: 40),
+                    const SizedBox(height: 48),
 
-                  // Email
-                  AppTextField(
-                    controller: _emailCtrl,
-                    label: 'Email',
-                    prefixIcon: Icons.email_outlined,
-                    keyboardType: TextInputType.emailAddress,
-                    validator: (v) {
-                      if (v == null || v.isEmpty) return 'Email requis';
-                      if (!RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(v)) return 'Email invalide';
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Password
-                  AppTextField(
-                    controller: _passwordCtrl,
-                    label: 'Mot de passe',
-                    prefixIcon: Icons.lock_outline,
-                    obscureText: _obscure,
-                    suffixIcon: IconButton(
-                      icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility),
-                      onPressed: () => setState(() => _obscure = !_obscure),
+                    // Email
+                    AppTextField(
+                      controller: _emailCtrl,
+                      label: 'Email',
+                      prefixIcon: Icons.email_outlined,
+                      keyboardType: TextInputType.emailAddress,
+                      textInputAction: TextInputAction.next,
+                      validator: (v) {
+                        if (v == null || v.isEmpty) return 'Email requis';
+                        if (!RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(v)) return 'Email invalide';
+                        return null;
+                      },
                     ),
-                    validator: (v) {
-                      if (v == null || v.isEmpty) return 'Mot de passe requis';
-                      if (v.length < 6) return 'Minimum 6 caractères';
-                      return null;
-                    },
-                  ),
+                    const SizedBox(height: 16),
 
-                  // Mot de passe oublié
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () => context.push('/forgot-password'),
-                      child: const Text('Mot de passe oublié ?'),
+                    // Password
+                    AppTextField(
+                      controller: _passwordCtrl,
+                      label: 'Mot de passe',
+                      prefixIcon: Icons.lock_outline,
+                      obscureText: _obscure,
+                      textInputAction: TextInputAction.done,
+                      onFieldSubmitted: (_) => _login(),
+                      suffixIcon: IconButton(
+                        icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility),
+                        onPressed: () => setState(() => _obscure = !_obscure),
+                      ),
+                      validator: (v) {
+                        if (v == null || v.isEmpty) return 'Mot de passe requis';
+                        return null;
+                      },
                     ),
-                  ),
 
-                  const SizedBox(height: 8),
-
-                  // Bouton connexion
-                  AppButton(
-                    label: 'Se connecter',
-                    isLoading: auth.isLoading,
-                    onPressed: _login,
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // Séparateur
-                  Row(children: [
-                    const Expanded(child: Divider()),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Text('ou', style: theme.textTheme.bodySmall),
+                    // Mot de passe oublié
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () => context.push('/forgot-password'),
+                        child: Text('Mot de passe oublié ?', style: TextStyle(color: theme.primaryColor, fontWeight: FontWeight.w600)),
+                      ),
                     ),
-                    const Expanded(child: Divider()),
-                  ]),
 
-                  const SizedBox(height: 20),
+                    const SizedBox(height: 12),
 
-                  // Google Sign-In
-                  _GoogleSignInButton(onPressed: _googleLogin, isLoading: auth.isLoading),
+                    // Bouton connexion
+                    AppButton(
+                      label: 'Se connecter',
+                      isLoading: auth.isLoading,
+                      onPressed: _login,
+                    ),
 
-                  const SizedBox(height: 32),
+                    const SizedBox(height: 24),
 
-                  // Pas de compte
-                  Center(
-                    child: Row(
+                    // Séparateur
+                    Row(children: [
+                      const Expanded(child: Divider()),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text('ou continuer avec', style: theme.textTheme.bodySmall?.copyWith(color: AppColors.textSecondaryLight)),
+                      ),
+                      const Expanded(child: Divider()),
+                    ]),
+
+                    const SizedBox(height: 24),
+
+                    // Google Sign-In
+                    _GoogleSignInButton(onPressed: _googleLogin, isLoading: auth.isLoading),
+
+                    const SizedBox(height: 32),
+
+                    // Pas de compte
+                    Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text('Pas encore de compte ?'),
+                        const Text('Nouveau ici ?'),
                         TextButton(
                           onPressed: () => context.push('/register'),
-                          child: const Text('S\'inscrire', style: TextStyle(fontWeight: FontWeight.w600)),
+                          child: Text('Créer un compte', style: TextStyle(fontWeight: FontWeight.w700, color: theme.primaryColor)),
                         ),
                       ],
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -203,6 +213,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       ),
     );
   }
+}
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -241,7 +252,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isLoading = true);
     final auth = context.read<AuthProvider>();
 
     bool ok;
@@ -249,24 +259,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
       final res = await auth.signInWithGoogle(
         roleIfNew: _selectedRole,
         regionId: _selectedRegionId,
+        phone: _phoneCtrl.text.trim(),
       );
       ok = res.success;
     } else {
       ok = await auth.signUpWithEmail(
-        email: _emailCtrl.text,
+        email: _emailCtrl.text.trim(),
         password: _passCtrl.text,
-        fullName: _nameCtrl.text,
-        phone: _phoneCtrl.text,
+        fullName: _nameCtrl.text.trim(),
+        phone: _phoneCtrl.text.trim(),
         role: _selectedRole,
         regionId: _selectedRegionId,
       );
     }
 
-    setState(() => _isLoading = false);
-
     if (!ok && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(auth.errorMessage ?? 'Erreur'), backgroundColor: AppColors.error),
+        SnackBar(
+          content: Text(auth.errorMessage ?? 'Erreur d\'inscription'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
       );
     }
   }
@@ -281,45 +294,78 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final auth = context.watch<AuthProvider>();
+    
     return Scaffold(
-      appBar: AppBar(title: const Text('Créer un compte')),
+      appBar: AppBar(
+        title: const Text('Créer un compte'),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+      ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // ─── CHOIX DU RÔLE ─────────────────────────────────
-              Text('Je suis…', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-              const SizedBox(height: 12),
+              Text('Choisissez votre profil', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+              const SizedBox(height: 16),
               _RoleSelector(
                 selected: _selectedRole,
                 onChanged: (r) => setState(() => _selectedRole = r),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
+
+              Text('Vos informations', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+              const SizedBox(height: 16),
 
               if (!widget.isGoogleFlow) ...[
-                AppTextField(controller: _nameCtrl, label: 'Nom complet', prefixIcon: Icons.person_outline,
-                  validator: (v) => (v?.isEmpty ?? true) ? 'Nom requis' : null),
+                AppTextField(
+                  controller: _nameCtrl,
+                  label: 'Nom complet',
+                  prefixIcon: Icons.person_outline,
+                  textInputAction: TextInputAction.next,
+                  validator: (v) => (v?.trim().isEmpty ?? true) ? 'Nom requis' : null,
+                ),
                 const SizedBox(height: 16),
-                AppTextField(controller: _emailCtrl, label: 'Email', prefixIcon: Icons.email_outlined,
+                AppTextField(
+                  controller: _emailCtrl,
+                  label: 'Email',
+                  prefixIcon: Icons.email_outlined,
                   keyboardType: TextInputType.emailAddress,
-                  validator: (v) => (v?.isEmpty ?? true) ? 'Email requis' : null),
+                  textInputAction: TextInputAction.next,
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return 'Email requis';
+                    if (!RegExp(r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(v)) return 'Email invalide';
+                    return null;
+                  },
+                ),
                 const SizedBox(height: 16),
               ],
 
-              AppTextField(controller: _phoneCtrl, label: 'Téléphone', prefixIcon: Icons.phone_outlined,
+              AppTextField(
+                controller: _phoneCtrl,
+                label: 'Téléphone',
+                prefixIcon: Icons.phone_outlined,
                 keyboardType: TextInputType.phone,
-                validator: (v) => (v?.isEmpty ?? true) ? 'Téléphone requis' : null),
+                textInputAction: widget.isGoogleFlow ? TextInputAction.done : TextInputAction.next,
+                hint: '05XXXXXXXX',
+                validator: (v) {
+                  if (v == null || v.isEmpty) return 'Téléphone requis';
+                  if (!RegExp(r'^(05|06|07)[0-9]{8}$').hasMatch(v)) return 'Format invalide (ex: 05XXXXXXXX)';
+                  return null;
+                },
+              ),
               const SizedBox(height: 16),
 
               // Région
               if (_regions.isNotEmpty) ...[
                 DropdownButtonFormField<String>(
-                  initialValue: _selectedRegionId,
+                  value: _selectedRegionId,
                   decoration: const InputDecoration(
-                    labelText: 'Région',
+                    labelText: 'Région / Wilaya',
                     prefixIcon: Icon(Icons.location_on_outlined),
                   ),
                   items: _regions.map((r) => DropdownMenuItem(value: r.id, child: Text(r.name))).toList(),
@@ -330,47 +376,69 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ],
 
               if (!widget.isGoogleFlow) ...[
-                AppTextField(controller: _passCtrl, label: 'Mot de passe', prefixIcon: Icons.lock_outline,
+                AppTextField(
+                  controller: _passCtrl,
+                  label: 'Mot de passe',
+                  prefixIcon: Icons.lock_outline,
                   obscureText: _obscure,
+                  textInputAction: TextInputAction.next,
                   suffixIcon: IconButton(
                     icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility),
                     onPressed: () => setState(() => _obscure = !_obscure),
                   ),
-                  validator: (v) => (v?.length ?? 0) < 6 ? 'Minimum 6 caractères' : null),
+                  validator: (v) {
+                    if ((v?.length ?? 0) < 6) return 'Minimum 6 caractères';
+                    // Optionnel: check complexité
+                    return null;
+                  },
+                ),
                 const SizedBox(height: 16),
-                AppTextField(controller: _confirmCtrl, label: 'Confirmer le mot de passe', prefixIcon: Icons.lock_outline,
+                AppTextField(
+                  controller: _confirmCtrl,
+                  label: 'Confirmer le mot de passe',
+                  prefixIcon: Icons.lock_outline,
                   obscureText: _obscure,
-                  validator: (v) => v != _passCtrl.text ? 'Les mots de passe ne correspondent pas' : null),
+                  textInputAction: TextInputAction.done,
+                  validator: (v) => v != _passCtrl.text ? 'Les mots de passe ne correspondent pas' : null,
+                ),
                 const SizedBox(height: 24),
               ],
 
               // Info selon rôle
-              if (_selectedRole == UserRole.transporter)
-                const _InfoCard(
-                  icon: Icons.info_outline,
-                  text: 'En tant que transporteur, vous devrez compléter votre profil véhicule après inscription.',
-                  color: AppColors.info,
-                ),
-              if (_selectedRole == UserRole.supervisor)
-                const _InfoCard(
-                  icon: Icons.supervisor_account_outlined,
-                  text: 'En tant que superviseur, vous pouvez parrainer jusqu\'à 20 transporteurs et recevoir des commissions sur leurs transports.',
-                  color: AppColors.warning,
-                ),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                child: _selectedRole == UserRole.transporter
+                    ? const _InfoCard(
+                        key: ValueKey('transporter_info'),
+                        icon: Icons.info_outline,
+                        text: 'En tant que transporteur, vous devrez compléter votre profil véhicule après inscription.',
+                        color: AppColors.info,
+                      )
+                    : _selectedRole == UserRole.supervisor
+                        ? const _InfoCard(
+                            key: ValueKey('supervisor_info'),
+                            icon: Icons.supervisor_account_outlined,
+                            text: 'En tant que superviseur, vous parrainez des transporteurs et recevez des commissions.',
+                            color: AppColors.warning,
+                          )
+                        : const SizedBox.shrink(),
+              ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
 
               AppButton(
                 label: 'Créer mon compte',
-                isLoading: _isLoading,
+                isLoading: auth.isLoading,
                 onPressed: _register,
               ),
+              const SizedBox(height: 24),
             ],
           ),
         ),
       ),
     );
   }
+}
 }
 
 // ─────────────────────────────────────────────────────────────────

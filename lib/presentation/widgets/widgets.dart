@@ -74,6 +74,8 @@ class AppTextField extends StatelessWidget {
   final String? hint;
   final bool enabled;
   final void Function(String)? onChanged;
+  final TextInputAction? textInputAction;
+  final void Function(String)? onFieldSubmitted;
 
   const AppTextField({
     super.key,
@@ -88,6 +90,8 @@ class AppTextField extends StatelessWidget {
     this.hint,
     this.enabled = true,
     this.onChanged,
+    this.textInputAction,
+    this.onFieldSubmitted,
   });
 
   @override
@@ -100,6 +104,8 @@ class AppTextField extends StatelessWidget {
       maxLines: maxLines,
       enabled: enabled,
       onChanged: onChanged,
+      textInputAction: textInputAction,
+      onFieldSubmitted: onFieldSubmitted,
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
