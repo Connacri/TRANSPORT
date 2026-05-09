@@ -2,7 +2,7 @@ name: Build & Release TransportHub
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, main ]
     paths-ignore:
       - 'README.md'
       - 'LICENSE'
@@ -10,8 +10,8 @@ on:
 
 permissions:
   contents: write
-
-jobs:
+  packages: write
+  actions: read
   # ═══════════════════════════════════════════
   # JOB 0 – Extraire la version
   # ═══════════════════════════════════════════
