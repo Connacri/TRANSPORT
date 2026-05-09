@@ -28,8 +28,19 @@ class AuthProvider extends ChangeNotifier {
     _authSub = FirebaseService.instance.authStateChanges.listen(_onAuthStateChanged);
   }
 
-  // ✅ FIX : Ne notifie qu'UNE SEULE FOIS à la fin, et évite
-  // le double-notify quand signInWithEmail a déjà mis loading.
+  // FIX #2 : éliminer le double notifyListeners() qui provoquait
+  // un double redirect dans GoRouter.
+  //
+  // Problème original :
+  //   - signInWithEmail() appelle _setLoading() → notify #1
+  //   - Firebase fire _onAuthStateChanged → le guard "if (_status != loading)"
+  //     laissait passer un notify #2 (loading) inutile avant le notify final
+  //   → GoRouter recevait 2 refreshes → 2 redirects → état incohérent
+  //
+  // Solution :
+  //   - On ne notifie PAS si on est déjà en loading (quelqu'un d'autre
+  //     a déjà notifié pour nous, ex: signInWithEmail).
+  //   - Un seul notifyListeners() à la toute fin, quelle que soit l'issue.
   Future<void> _onAuthStateChanged(User? user) async {
     if (user == null) {
       _status  = AuthStatus.unauthenticated;
@@ -38,10 +49,13 @@ class AuthProvider extends ChangeNotifier {
       return;
     }
 
-    // Évite un double notifyListeners() si signInWithEmail a déjà
-    // mis le status à loading avant que Firebase ne fire ce callback.
-    if (_status != AuthStatus.loading) {
-      _status = AuthStatus.loading;
+    // Si on n'est pas déjà en loading (= personne n'a encore notifié),
+    // on notifie UNE FOIS pour afficher l'indicateur de chargement.
+    // Si on est déjà en loading (signInWithEmail a déjà notifié),
+    // on skip ce notify pour éviter le double refresh du router.
+    final needsInitialNotify = _status != AuthStatus.loading;
+    _status = AuthStatus.loading;
+    if (needsInitialNotify) {
       notifyListeners();
     }
 
@@ -59,8 +73,7 @@ class AuthProvider extends ChangeNotifier {
       _errorMessage = _mapError(e);
     }
 
-    // ✅ Un seul notifyListeners() final → le router recalcule
-    // le redirect une seule fois → zéro clignotement.
+    // Notify final unique → GoRouter recalcule le redirect UNE SEULE FOIS.
     notifyListeners();
   }
 
@@ -151,13 +164,15 @@ class AuthProvider extends ChangeNotifier {
     required String email,
     required String password,
   }) async {
-    _setLoading();
+    _setLoading(); // notify #1 (loading)
     try {
       await FirebaseService.instance.signInWithEmail(
         email: email,
         password: password,
       );
-      // ✅ _onAuthStateChanged prend le relais et fait le notify final.
+      // _onAuthStateChanged prend le relais et fait le notify final.
+      // Grâce au guard needsInitialNotify, il n'y aura pas de 2e notify
+      // intermédiaire → un seul refresh du router.
       return true;
     } on FirebaseAuthException catch (e) {
       _setError(_mapFirebaseError(e));
@@ -190,8 +205,6 @@ class AuthProvider extends ChangeNotifier {
       final isNew = _profile == null;
       if (isNew) {
         if (roleIfNew == null) {
-          // Nouvel utilisateur Google sans rôle → l'écran Register
-          // va le redemander. On reste unauthenticated le temps qu'il choisisse.
           _status = AuthStatus.unauthenticated;
           notifyListeners();
           return (success: true, isNewUser: true);
@@ -216,9 +229,6 @@ class AuthProvider extends ChangeNotifier {
 
       await _postLoginActions(_profile!);
       _status = AuthStatus.authenticated;
-      // ✅ Un seul notify. _onAuthStateChanged sera aussi déclenché par Firebase
-      // mais le guard "if (_status != AuthStatus.loading)" l'empêchera
-      // de refaire un notify inutile (on sera déjà à authenticated).
       notifyListeners();
       return (success: true, isNewUser: isNew);
     } catch (e) {
