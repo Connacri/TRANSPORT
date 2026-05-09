@@ -214,7 +214,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     );
   }
 }
-}
 
 // ─────────────────────────────────────────────────────────────────
 // REGISTER SCREEN
@@ -236,7 +235,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String?  _selectedRegionId;
   List<RegionModel> _regions = [];
   bool _obscure = true;
-  bool _isLoading = false;
 
   @override
   void initState() {
@@ -363,7 +361,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               // Région
               if (_regions.isNotEmpty) ...[
                 DropdownButtonFormField<String>(
-                  value: _selectedRegionId,
+                  initialValue: _selectedRegionId,
                   decoration: const InputDecoration(
                     labelText: 'Région / Wilaya',
                     prefixIcon: Icon(Icons.location_on_outlined),
@@ -438,7 +436,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
     );
   }
-}
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -593,7 +590,7 @@ class _InfoCard extends StatelessWidget {
   final IconData icon;
   final String text;
   final Color color;
-  const _InfoCard({required this.icon, required this.text, required this.color});
+  const _InfoCard({super.key, required this.icon, required this.text, required this.color});
 
   @override
   Widget build(BuildContext context) {
