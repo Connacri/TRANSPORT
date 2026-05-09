@@ -377,9 +377,10 @@ class _TrackingMapState extends State<TrackingMap> {
           children: [
             // ── Tuiles OSM ───────────────────────────────────────
             TileLayer(
-              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-              userAgentPackageName: 'com.transporthub.app',
-            ),
+  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+  userAgentPackageName: 'com.trasnport.dz.trasport', // applicationId exact
+  tileProvider: CancellableNetworkTileProvider(),
+),
 
             // ── Route parcourue ───────────────────────────────────
             if (widget.trackingHistory.length > 1)
