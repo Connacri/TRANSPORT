@@ -9,8 +9,8 @@ class AppConstants {
   static const String appTagline    = 'Transport à portée de main';
 
   // ─── Supabase ─────────────────────────────────────────────────
-  static const String supabaseUrl   = 'YOUR_SUPABASE_URL';
-  static const String supabaseAnonKey = 'YOUR_SUPABASE_ANON_KEY';
+  static const String supabaseUrl   = 'https://xlgxpiniwjbooezzrtxi.supabase.co';
+  static const String supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhsZ3hwaW5pd2pib29lenpydHhpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyMDk4MjMsImV4cCI6MjA5Mzc4NTgyM30.hHSpVXcx1QG0NSw8ELeR9PAoQ3l79i2Op8_avP5USwU';
 
   // ─── Supabase Tables ──────────────────────────────────────────
   static const String tProfiles             = 'profiles';
