@@ -57,7 +57,14 @@ void main() async {
   );
 
   await FirebaseService.instance.init();
-  await TrackingService.instance.initialize();
+
+  // FIX #4 : TrackingService peut throw si les permissions sont absentes
+  // sur Android 11+ au premier lancement → ne pas laisser crasher main().
+  try {
+    await TrackingService.instance.initialize();
+  } catch (e) {
+    debugPrint('[TrackingService] init skipped: $e');
+  }
 
   runApp(const TransportHubApp());
 }
@@ -74,22 +81,26 @@ class TransportHubApp extends StatefulWidget {
 
 class _TransportHubAppState extends State<TransportHubApp> {
   late final AuthProvider _authProvider;
-
-  // ✅ Router créé UNE SEULE FOIS → plus jamais recréé lors des rebuilds.
-  // C'est la correction principale du clignotement.
   late final GoRouter _router;
 
   @override
   void initState() {
     super.initState();
     _authProvider = AuthProvider();
-
-    // ✅ Router initialisé en premier avec référence stable à _authProvider.
     _router = _buildRouter(_authProvider);
 
-    // ✅ init() appelé APRÈS la construction du router pour éviter
-    // la race condition au démarrage.
-    _authProvider.init();
+    // FIX #1 : init() doit être appelé APRÈS le premier frame.
+    //
+    // Firebase.authStateChanges émet la valeur courante de manière
+    // synchrone dès que le listener est attaché (dans init()).
+    // Si init() est appelé ici directement, notifyListeners() est
+    // déclenché AVANT que le widget tree soit monté → GoRouter
+    // essaie de naviguer sur un contexte inexistant → crash répété.
+    //
+    // addPostFrameCallback garantit que le widget tree est prêt.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _authProvider.init();
+    });
   }
 
   @override
@@ -111,8 +122,7 @@ class _TransportHubAppState extends State<TransportHubApp> {
         ChangeNotifierProvider(create: (_) => SupervisorProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
-      // ✅ Seul ThemeProvider rebuild MaterialApp (pour le thème).
-      // AuthProvider ne rebuild PLUS MaterialApp.router → router stable.
+      // Seul ThemeProvider rebuild MaterialApp → router jamais recréé.
       child: Consumer<ThemeProvider>(
         builder: (context, themeProv, _) {
           return MaterialApp.router(
@@ -121,7 +131,7 @@ class _TransportHubAppState extends State<TransportHubApp> {
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: themeProv.themeMode,
-            routerConfig: _router, // ✅ Référence stable, jamais recréée.
+            routerConfig: _router,
           );
         },
       ),
@@ -132,20 +142,26 @@ class _TransportHubAppState extends State<TransportHubApp> {
     return GoRouter(
       refreshListenable: auth,
       initialLocation: '/onboarding',
-      // ✅ redirect est synchrone (plus d'async inutile).
       redirect: (context, state) {
         final status = auth.status;
         final path   = state.matchedLocation;
 
-        // Pendant initial et loading → on ne touche à rien.
-        // L'écran actuel reste affiché sans clignotement.
+        // FIX #3 : pendant initial/loading on retourne un écran stable.
+        //
+        // Retourner null ici laisse GoRouter sur la route courante, mais
+        // au tout premier boot cette route peut ne pas encore exister dans
+        // le widget tree → état incohérent. En retournant '/login' (ou
+        // '/onboarding' si c'est la toute première fois) on force un écran
+        // garanti d'exister, ce qui évite le crash du router state machine.
         if (status == AuthStatus.initial || status == AuthStatus.loading) {
-          return null;
+          // Si on est déjà sur une route auth → on reste, pas de boucle.
+          const stableRoutes = ['/onboarding', '/login'];
+          if (stableRoutes.contains(path)) return null;
+          return '/login';
         }
 
-        final isAuth = status == AuthStatus.authenticated && auth.profile != null;
-
-        final authPaths = ['/login', '/register', '/forgot-password', '/onboarding'];
+        final isAuth     = status == AuthStatus.authenticated && auth.profile != null;
+        final authPaths  = ['/login', '/register', '/forgot-password', '/onboarding'];
         final isAuthPath = authPaths.any((p) => path.startsWith(p));
 
         if (!isAuth && !isAuthPath) return '/login';
@@ -197,15 +213,15 @@ class _TransportHubAppState extends State<TransportHubApp> {
           path: '/home/transporter',
           builder: (_, __) => const TransporterHomeScreen(),
           routes: [
-            GoRoute(path: 'setup',       builder: (_, __) => const TransporterSetupScreen()),
+            GoRoute(path: 'setup',    builder: (_, __) => const TransporterSetupScreen()),
             GoRoute(
               path: 'request/:id',
               builder: (_, s) => TransporterRequestScreen(
                 requestId: s.pathParameters['id']!,
               ),
             ),
-            GoRoute(path: 'premium',  builder: (_, __) => const PremiumStoreScreen()),
-            GoRoute(path: 'history',  builder: (_, __) => const HistoryScreen()),
+            GoRoute(path: 'premium', builder: (_, __) => const PremiumStoreScreen()),
+            GoRoute(path: 'history', builder: (_, __) => const HistoryScreen()),
           ],
         ),
 
@@ -306,9 +322,9 @@ class MarketplaceProvider extends ChangeNotifier {
     bool refresh = false,
   }) async {
     if (refresh) {
-      _listings     = [];
-      _currentPage  = 0;
-      _hasMore      = true;
+      _listings    = [];
+      _currentPage = 0;
+      _hasMore     = true;
     }
     if (!_hasMore || _isLoading) return;
 
