@@ -118,17 +118,24 @@ class TrackingService {
   // ─── PERMISSIONS ─────────────────────────────────────────────
 
   Future<bool> requestPermissions() async {
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) return false;
+  bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+  if (!serviceEnabled) return false;
 
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) return false;
-    }
-    if (permission == LocationPermission.deniedForever) return false;
-    return true;
+  LocationPermission permission = await Geolocator.checkPermission();
+  if (permission == LocationPermission.denied) {
+    permission = await Geolocator.requestPermission();
+    if (permission == LocationPermission.denied) return false;
   }
+  if (permission == LocationPermission.deniedForever) return false;
+  
+  // Android 11+ : demander background séparément
+  if (permission == LocationPermission.whileInUse) {
+    permission = await Geolocator.requestPermission();
+  }
+  
+  return permission == LocationPermission.always ||
+         permission == LocationPermission.whileInUse;
+}
 
   // ─── DÉMARRER LE TRACKING ────────────────────────────────────
 
