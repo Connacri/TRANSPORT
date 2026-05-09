@@ -12,6 +12,8 @@ permissions:
   contents: write
   packages: write
   actions: read
+
+jobs:
   # ═══════════════════════════════════════════
   # JOB 0 – Extraire la version
   # ═══════════════════════════════════════════
