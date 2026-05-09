@@ -17,7 +17,6 @@ import 'presentation/providers/auth_provider.dart';
 import 'presentation/providers/transport_provider.dart';
 import 'presentation/providers/providers.dart';
 
-// ─── Écrans ──────────────────────────────────────────────────────
 import 'presentation/screens/admin/admin_screens.dart';
 import 'presentation/screens/auth/auth_screens.dart';
 import 'presentation/screens/marketplace/listing_screens.dart';
@@ -36,31 +35,26 @@ import 'presentation/screens/shared/profile_screen.dart';
 import 'presentation/screens/shared/onboarding_screen.dart';
 import 'data/services/supabase_service.dart';
 
-
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  //Orientation portrait + landscape (desktop aussi)
+
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
   ]);
 
-  // Supabase
   await Supabase.initialize(
     url: AppConstants.supabaseUrl,
     anonKey: AppConstants.supabaseAnonKey,
     realtimeClientOptions: const RealtimeClientOptions(logLevel: RealtimeLogLevel.info),
   );
 
-  // Firebase FCM + Local Notifs
   await FirebaseService.instance.init();
-
-  // Background tracking
   await TrackingService.instance.initialize();
 
   runApp(const TransportHubApp());
@@ -71,16 +65,30 @@ void main() async {
 // ─────────────────────────────────────────────────────────────────
 class TransportHubApp extends StatefulWidget {
   const TransportHubApp({super.key});
-  @override State<TransportHubApp> createState() => _TransportHubAppState();
+  @override
+  State<TransportHubApp> createState() => _TransportHubAppState();
 }
 
 class _TransportHubAppState extends State<TransportHubApp> {
   late final AuthProvider _authProvider;
 
+  // ✅ FIX #1 : Le router est créé UNE SEULE FOIS comme champ d'état.
+  // Il ne sera jamais recréé, éliminant le clignotement.
+  late final GoRouter _router;
+
   @override
   void initState() {
     super.initState();
     _authProvider = AuthProvider();
+
+    // ✅ FIX #2 : Le router est initialisé ici avec une référence stable
+    // à _authProvider. refreshListenable permet au router de recalculer
+    // les redirections sans recréer le router lui-même.
+    _router = _buildRouter(_authProvider);
+
+    // ✅ FIX #3 : init() est appelé après la construction du router
+    // pour éviter la race condition. L'état initial est 'initial',
+    // le redirect retourne null pendant ce temps.
     _authProvider.init();
   }
 
@@ -103,16 +111,18 @@ class _TransportHubAppState extends State<TransportHubApp> {
         ChangeNotifierProvider(create: (_) => SupervisorProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
-      child: Consumer2<AuthProvider, ThemeProvider>(
-        builder: (context, auth, themeProv, _) {
-          final router = _buildRouter(auth);
+      // ✅ FIX #4 : Seul ThemeProvider est écouté ici pour le thème.
+      // AuthProvider ne déclenche PLUS de rebuild du widget racine,
+      // uniquement une réévaluation du redirect via refreshListenable.
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProv, _) {
           return MaterialApp.router(
             title: AppConstants.appName,
             debugShowCheckedModeBanner: false,
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: themeProv.themeMode,
-            routerConfig: router,
+            routerConfig: _router, // ✅ Référence stable, jamais recréée
           );
         },
       ),
@@ -123,31 +133,35 @@ class _TransportHubAppState extends State<TransportHubApp> {
     return GoRouter(
       refreshListenable: auth,
       initialLocation: '/onboarding',
-      redirect: (context, state) async {
-        final isAuth    = auth.isAuth;
-        final isLoading = auth.status == AuthStatus.initial || auth.status == AuthStatus.loading;
-        final path      = state.matchedLocation;
+      redirect: (context, state) {
+        final status = auth.status;
+        final path   = state.matchedLocation;
 
-        // En chargement → rien
-        if (isLoading) return null;
+        // ✅ FIX #5 : Pendant le chargement initial ET le chargement
+        // post-login, on ne redirige pas. L'écran courant reste affiché.
+        if (status == AuthStatus.initial || status == AuthStatus.loading) {
+          return null;
+        }
 
-        // Pages publiques (auth)
+        final isAuth = status == AuthStatus.authenticated && auth.profile != null;
+
         final authPaths = ['/login', '/register', '/forgot-password', '/onboarding'];
         final isAuthPath = authPaths.any((p) => path.startsWith(p));
 
+        // Non authentifié sur une page protégée → login
         if (!isAuth && !isAuthPath) return '/login';
+
+        // Authentifié sur une page auth → home selon rôle
         if (isAuth && isAuthPath) return _homeByRole(auth.role);
 
         return null;
       },
       routes: [
-        // ─── AUTH ────────────────────────────────────────────────
         GoRoute(path: '/onboarding',      builder: (_, __) => const OnboardingScreen()),
         GoRoute(path: '/login',           builder: (_, __) => const LoginScreen()),
         GoRoute(path: '/register',        builder: (_, s) => RegisterScreen(isGoogleFlow: s.uri.queryParameters['google'] == 'true')),
         GoRoute(path: '/forgot-password', builder: (_, __) => const ForgotPasswordScreen()),
 
-        // ─── PUBLIC (CLIENT) ─────────────────────────────────────
         GoRoute(
           path: '/home/public',
           builder: (_, __) => const PublicHomeScreen(),
@@ -159,19 +173,17 @@ class _TransportHubAppState extends State<TransportHubApp> {
           ],
         ),
 
-        // ─── TRANSPORTEUR ────────────────────────────────────────
         GoRoute(
           path: '/home/transporter',
           builder: (_, __) => const TransporterHomeScreen(),
           routes: [
-            GoRoute(path: 'setup',      builder: (_, __) => const TransporterSetupScreen()),
-            GoRoute(path: 'request/:id',builder: (_, s) => TransporterRequestScreen(requestId: s.pathParameters['id']!)),
-            GoRoute(path: 'premium',    builder: (_, __) => const PremiumStoreScreen()),
-            GoRoute(path: 'history',    builder: (_, __) => const HistoryScreen()),
+            GoRoute(path: 'setup',       builder: (_, __) => const TransporterSetupScreen()),
+            GoRoute(path: 'request/:id', builder: (_, s) => TransporterRequestScreen(requestId: s.pathParameters['id']!)),
+            GoRoute(path: 'premium',     builder: (_, __) => const PremiumStoreScreen()),
+            GoRoute(path: 'history',     builder: (_, __) => const HistoryScreen()),
           ],
         ),
 
-        // ─── SUPERVISEUR ─────────────────────────────────────────
         GoRoute(
           path: '/home/supervisor',
           builder: (_, __) => const SupervisorHomeScreen(),
@@ -180,18 +192,16 @@ class _TransportHubAppState extends State<TransportHubApp> {
           ],
         ),
 
-        // ─── ADMIN ───────────────────────────────────────────────
         GoRoute(
           path: '/home/admin',
           builder: (_, __) => const AdminDashboardScreen(),
           routes: [
-            GoRoute(path: 'validate',      builder: (_, __) => const AdminTransporterValidationScreen()),
-            GoRoute(path: 'rules',         builder: (_, __) => const AdminBusinessRulesScreen()),
-            GoRoute(path: 'supervisors',   builder: (_, __) => const AdminSupervisorsScreen()),
+            GoRoute(path: 'validate',    builder: (_, __) => const AdminTransporterValidationScreen()),
+            GoRoute(path: 'rules',       builder: (_, __) => const AdminBusinessRulesScreen()),
+            GoRoute(path: 'supervisors', builder: (_, __) => const AdminSupervisorsScreen()),
           ],
         ),
 
-        // ─── MARKETPLACE (tous rôles) ─────────────────────────────
         GoRoute(
           path: '/marketplace',
           builder: (_, __) => const MarketplaceScreen(),
@@ -201,7 +211,6 @@ class _TransportHubAppState extends State<TransportHubApp> {
           ],
         ),
 
-        // ─── PARTAGÉS ────────────────────────────────────────────
         GoRoute(path: '/profile',       builder: (_, __) => const ProfileScreen()),
         GoRoute(path: '/notifications', builder: (_, __) => const NotificationsScreen()),
       ],
@@ -220,155 +229,3 @@ class _TransportHubAppState extends State<TransportHubApp> {
     }
   }
 }
-
-// ─────────────────────────────────────────────────────────────────
-// THEME PROVIDER
-// ─────────────────────────────────────────────────────────────────
-class ThemeProvider extends ChangeNotifier {
-  ThemeMode _themeMode = ThemeMode.system;
-  ThemeMode get themeMode => _themeMode;
-
-  void setTheme(ThemeMode mode) {
-    _themeMode = mode;
-    notifyListeners();
-  }
-
-  void toggle() {
-    _themeMode = _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
-    notifyListeners();
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────
-// MARKETPLACE PROVIDER (stub — à compléter)
-// ─────────────────────────────────────────────────────────────────
-class MarketplaceProvider extends ChangeNotifier {
-  List<MarketplaceListingModel> _listings = [];
-  bool _isLoading = false;
-  String? _error;
-  int _currentPage = 0;
-  bool _hasMore = true;
-
-  List<MarketplaceListingModel> get listings   => _listings;
-  bool                          get isLoading  => _isLoading;
-  String?                       get error      => _error;
-  bool                          get hasMore    => _hasMore;
-
-  Future<void> loadListings({String? categoryId, String? regionId, bool refresh = false}) async {
-    if (refresh) { _listings = []; _currentPage = 0; _hasMore = true; }
-    if (!_hasMore || _isLoading) return;
-
-    _isLoading = true;
-    notifyListeners();
-
-    try {
-      final newItems = await SupabaseService.instance.getListings(
-        categoryId: categoryId,
-        regionId: regionId,
-        page: _currentPage,
-      );
-      _listings.addAll(newItems);
-      _currentPage++;
-      _hasMore = newItems.length >= AppConstants.pageSize;
-    } catch (e) {
-      _error = e.toString();
-    }
-
-    _isLoading = false;
-    notifyListeners();
-  }
-
-  Future<bool> createListing({
-    required String sellerId,
-    required String title,
-    required String? description,
-    required String? categoryId,
-    required ListingType type,
-    required double? price,
-    required bool isPriceNegotiable,
-    required List<String> imagesUrls,
-    required String? regionId,
-    required String? city,
-  }) async {
-    try {
-      final listing = await SupabaseService.instance.createListing({
-        'seller_id': sellerId,
-        'title': title,
-        'description': description,
-        'category_id': categoryId,
-        'type': type.name,
-        'price': price,
-        'is_price_negotiable': isPriceNegotiable,
-        'images_urls': imagesUrls,
-        'region_id': regionId,
-        'city': city,
-      });
-      _listings.insert(0, listing);
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _error = e.toString();
-      notifyListeners();
-      return false;
-    }
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────
-// SUPERVISOR PROVIDER
-// ─────────────────────────────────────────────────────────────────
-class SupervisorProvider extends ChangeNotifier {
-  SupervisorModel? _supervisor;
-  bool _isLoading = false;
-  String? _error;
-
-  SupervisorModel? get supervisor => _supervisor;
-  bool             get isLoading  => _isLoading;
-  String?          get error      => _error;
-
-  Future<void> loadSupervisor(String profileId) async {
-    _isLoading = true;
-    notifyListeners();
-    try {
-      _supervisor = await SupabaseService.instance.getSupervisorByProfileId(profileId);
-    } catch (e) {
-      _error = e.toString();
-    }
-    _isLoading = false;
-    notifyListeners();
-  }
-
-  Future<bool> addTransporterByReferral({
-    required String transporterCode,
-    required String supervisorId,
-  }) async {
-    try {
-      // Chercher transporteur par code (email ou ID)
-      final transporterData = await SupabaseService.instance.client
-          .from(AppConstants.tTransporters)
-          .select('id, profiles!inner(email)')
-          .eq('profiles.email', transporterCode)
-          .maybeSingle();
-
-      if (transporterData == null) {
-        _error = 'Transporteur introuvable avec cet email';
-        notifyListeners();
-        return false;
-      }
-
-      await SupabaseService.instance.addTransporterReferral(
-        supervisorId: supervisorId,
-        transporterId: transporterData['id'] as String,
-      );
-
-      await loadSupervisor(_supervisor!.profileId);
-      return true;
-    } catch (e) {
-      _error = e.toString();
-      notifyListeners();
-      return false;
-    }
-  }
-}
-
-
