@@ -5,6 +5,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'supabase_service.dart';
+import 'package:flutter/foundation.dart';
+
 
 // ─── Gestionnaire background FCM (top-level obligatoire) ─────────
 @pragma('vm:entry-point')
