@@ -23,6 +23,14 @@
           }
         },
         {
+          "client_id": "263476182469-u58fe5f511bogm4huf5ncbao6e1ghgeh.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.trasnport.dz.trasport",
+            "certificate_hash": "f163b8004c2f5771ae16e3c84266e1240dd5f90d"
+          }
+        },
+        {
           "client_id": "263476182469-rb90c3c0braunpql4p079sfn93muugm9.apps.googleusercontent.com",
           "client_type": 3
         }
