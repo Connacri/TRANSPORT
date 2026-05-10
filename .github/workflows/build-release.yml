@@ -28,16 +28,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Extraire VERSION_NAME depuis pubspec.yaml
+      - name: Extraire la base de version depuis pubspec.yaml
         id: ver
         run: |
-          VERSION_NAME=$(grep '^version:' pubspec.yaml | sed 's/version: //' | cut -d'+' -f1 | tr -d '[:space:]')
-          VERSION_FULL="${VERSION_NAME}.${{ github.run_number }}"
+          # Extrait le Major.Minor (ex: 1.0)
+          BASE_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | cut -d'.' -f1,2 | tr -d '[:space:]')
+          VERSION_FULL="${BASE_VERSION}.${{ github.run_number }}"
           TAG="v${VERSION_FULL}"
-          echo "version_name=${VERSION_NAME}" >> $GITHUB_OUTPUT
+          echo "version_base=${BASE_VERSION}" >> $GITHUB_OUTPUT
           echo "version_full=${VERSION_FULL}"  >> $GITHUB_OUTPUT
           echo "tag=${TAG}"                    >> $GITHUB_OUTPUT
-          echo "▶ VERSION_NAME = ${VERSION_NAME}"
+          echo "▶ BASE_VERSION = ${BASE_VERSION}"
           echo "▶ VERSION_FULL = ${VERSION_FULL}"
           echo "▶ TAG          = ${TAG}"
 
@@ -66,7 +67,7 @@ jobs:
     needs: [extract-version, test]
     runs-on: ubuntu-latest
     env:
-      VERSION_NAME: ${{ needs.extract-version.outputs.version_name }}
+      VERSION_FULL: ${{ needs.extract-version.outputs.version_full }}
     steps:
       - uses: actions/checkout@v4
 
@@ -80,7 +81,7 @@ jobs:
       - name: Build APK release
         run: |
           flutter build apk --release \
-            --build-name="${VERSION_NAME}" \
+            --build-name="${VERSION_FULL}" \
             --build-number=${{ github.run_number }}
 
       - uses: actions/upload-artifact@v4
@@ -95,7 +96,6 @@ jobs:
     needs: [extract-version, test]
     runs-on: windows-latest
     env:
-      VERSION_NAME: ${{ needs.extract-version.outputs.version_name }}
       VERSION_FULL: ${{ needs.extract-version.outputs.version_full }}
     steps:
       - uses: actions/checkout@v4
@@ -108,15 +108,16 @@ jobs:
       - name: Patcher pubspec & setup.iss
         shell: pwsh
         run: |
-          $versionName = "$env:VERSION_NAME"
           $versionFull = "$env:VERSION_FULL"
           $buildNumber = "${{ github.run_number }}"
 
-          # pubspec.yaml
-          (Get-Content pubspec.yaml) -replace '^version: .*', "version: $versionName+$buildNumber" | Set-Content pubspec.yaml
+          # pubspec.yaml - format: 1.0.X+X
+          (Get-Content pubspec.yaml) -replace '^version: .*', "version: $versionFull+$buildNumber" | Set-Content pubspec.yaml
           
           # installer/setup.iss
-          (Get-Content installer/setup.iss) -replace '#define AppVersion "[^"]*"', "#define AppVersion `"$versionFull`"" | Set-Content installer/setup.iss
+          if (Test-Path installer/setup.iss) {
+            (Get-Content installer/setup.iss) -replace '#define AppVersion "[^"]*"', "#define AppVersion `"$versionFull`"" | Set-Content installer/setup.iss
+          }
 
       - run: flutter pub get
 
@@ -185,9 +186,11 @@ jobs:
 
       - name: Mettre à jour pubspec.yaml (master)
         run: |
-          sed -i "s/^version: .*/version: ${{ needs.extract-version.outputs.version_name }}+${{ github.run_number }}/" pubspec.yaml
+          VERSION_FULL=${{ needs.extract-version.outputs.version_full }}
+          BUILD_NUMBER=${{ github.run_number }}
+          sed -i "s/^version: .*/version: ${VERSION_FULL}+${BUILD_NUMBER}/" pubspec.yaml
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add pubspec.yaml
-          git commit -m "chore: bump version to ${{ env.VERSION_FULL }} [skip ci]" || echo "No changes to commit"
+          git commit -m "chore: bump version to ${VERSION_FULL} [skip ci]" || echo "No changes to commit"
           git push origin master
