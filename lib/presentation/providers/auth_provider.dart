@@ -10,9 +10,9 @@ import '../../data/services/supabase_service.dart';
 enum AuthStatus { initial, loading, authenticated, unauthenticated, error }
 
 class AuthProvider extends ChangeNotifier {
-  AuthStatus _status    = AuthStatus.initial;
+  AuthStatus    _status       = AuthStatus.initial;
   ProfileModel? _profile;
-  String? _errorMessage;
+  String?       _errorMessage;
   StreamSubscription? _authSub;
 
   AuthStatus    get status       => _status;
@@ -28,6 +28,19 @@ class AuthProvider extends ChangeNotifier {
     _authSub = FirebaseService.instance.authStateChanges.listen(_onAuthStateChanged);
   }
 
+  // FIX #2 : éliminer le double notifyListeners() qui provoquait
+  // un double redirect dans GoRouter.
+  //
+  // Problème original :
+  //   - signInWithEmail() appelle _setLoading() → notify #1
+  //   - Firebase fire _onAuthStateChanged → le guard "if (_status != loading)"
+  //     laissait passer un notify #2 (loading) inutile avant le notify final
+  //   → GoRouter recevait 2 refreshes → 2 redirects → état incohérent
+  //
+  // Solution :
+  //   - On ne notifie PAS si on est déjà en loading (quelqu'un d'autre
+  //     a déjà notifié pour nous, ex: signInWithEmail).
+  //   - Un seul notifyListeners() à la toute fin, quelle que soit l'issue.
   Future<void> _onAuthStateChanged(User? user) async {
     if (user == null) {
       _status  = AuthStatus.unauthenticated;
@@ -36,24 +49,31 @@ class AuthProvider extends ChangeNotifier {
       return;
     }
 
+    // Si on n'est pas déjà en loading (= personne n'a encore notifié),
+    // on notifie UNE FOIS pour afficher l'indicateur de chargement.
+    // Si on est déjà en loading (signInWithEmail a déjà notifié),
+    // on skip ce notify pour éviter le double refresh du router.
+    final needsInitialNotify = _status != AuthStatus.loading;
     _status = AuthStatus.loading;
-    notifyListeners();
+    if (needsInitialNotify) {
+      notifyListeners();
+    }
 
     try {
       _profile = await SupabaseService.instance.getProfileByFirebaseUid(user.uid);
 
       if (_profile == null) {
-        // Profil inexistant → peut arriver si le crash survient entre Firebase et Supabase
-        // On laisse l'utilisateur sur l'écran de login ou register qui détectera l'absence de profil
         _status = AuthStatus.unauthenticated;
       } else {
         await _postLoginActions(_profile!);
         _status = AuthStatus.authenticated;
       }
     } catch (e) {
-      _setError(_mapError(e));
+      _status       = AuthStatus.error;
+      _errorMessage = _mapError(e);
     }
 
+    // Notify final unique → GoRouter recalcule le redirect UNE SEULE FOIS.
     notifyListeners();
   }
 
@@ -61,10 +81,11 @@ class AuthProvider extends ChangeNotifier {
     try {
       await SupabaseService.instance.updateLastSeen(profile.id);
 
-      // Enregistrer FCM Token
       final token = await FirebaseService.instance.getFcmToken();
       if (token != null) {
-        final platform = defaultTargetPlatform == TargetPlatform.android ? 'android' : 'windows';
+        final platform = defaultTargetPlatform == TargetPlatform.android
+            ? 'android'
+            : 'windows';
         await SupabaseService.instance.upsertFcmToken(
           profileId: profile.id,
           token: token,
@@ -76,7 +97,6 @@ class AuthProvider extends ChangeNotifier {
       await prefs.setString('user_role', profile.role.name);
     } catch (e) {
       debugPrint('Error in postLoginActions: $e');
-      // On ne bloque pas l'auth pour ça
     }
   }
 
@@ -96,7 +116,7 @@ class AuthProvider extends ChangeNotifier {
         email: email,
         password: password,
       );
-      
+
       try {
         await FirebaseService.instance.updateDisplayName(fullName);
       } catch (e) {
@@ -112,9 +132,11 @@ class AuthProvider extends ChangeNotifier {
         regionId: regionId,
       );
 
-      // Créer fiche superviseur si rôle superviseur
       if (role == UserRole.supervisor) {
-        await SupabaseService.instance.createSupervisor(_profile!.id, regionId: regionId);
+        await SupabaseService.instance.createSupervisor(
+          _profile!.id,
+          regionId: regionId,
+        );
       }
 
       try {
@@ -122,9 +144,8 @@ class AuthProvider extends ChangeNotifier {
       } catch (e) {
         debugPrint('Failed to send verification email: $e');
       }
-      
-      await _postLoginActions(_profile!);
 
+      await _postLoginActions(_profile!);
       _status = AuthStatus.authenticated;
       notifyListeners();
       return true;
@@ -143,10 +164,15 @@ class AuthProvider extends ChangeNotifier {
     required String email,
     required String password,
   }) async {
-    _setLoading();
+    _setLoading(); // notify #1 (loading)
     try {
-      await FirebaseService.instance.signInWithEmail(email: email, password: password);
-      // _onAuthStateChanged gère la suite (récupération profil Supabase)
+      await FirebaseService.instance.signInWithEmail(
+        email: email,
+        password: password,
+      );
+      // _onAuthStateChanged prend le relais et fait le notify final.
+      // Grâce au guard needsInitialNotify, il n'y aura pas de 2e notify
+      // intermédiaire → un seul refresh du router.
       return true;
     } on FirebaseAuthException catch (e) {
       _setError(_mapFirebaseError(e));
@@ -179,7 +205,6 @@ class AuthProvider extends ChangeNotifier {
       final isNew = _profile == null;
       if (isNew) {
         if (roleIfNew == null) {
-          // Besoin de choisir le rôle sur l'écran Register
           _status = AuthStatus.unauthenticated;
           notifyListeners();
           return (success: true, isNewUser: true);
@@ -195,7 +220,10 @@ class AuthProvider extends ChangeNotifier {
         );
 
         if (roleIfNew == UserRole.supervisor) {
-          await SupabaseService.instance.createSupervisor(_profile!.id, regionId: regionId);
+          await SupabaseService.instance.createSupervisor(
+            _profile!.id,
+            regionId: regionId,
+          );
         }
       }
 
@@ -227,7 +255,7 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // ─── CHANGER DE RÔLE (après inscription) ─────────────────────
+  // ─── CHANGER DE RÔLE ─────────────────────────────────────────
 
   Future<bool> changeRole(UserRole newRole) async {
     if (_profile == null) return false;
@@ -238,9 +266,9 @@ class AuthProvider extends ChangeNotifier {
         {'role': newRole.name},
       );
 
-      // Créer fiche superviseur si passage au rôle superviseur
       if (newRole == UserRole.supervisor) {
-        final existing = await SupabaseService.instance.getSupervisorByProfileId(_profile!.id);
+        final existing = await SupabaseService.instance
+            .getSupervisorByProfileId(_profile!.id);
         if (existing == null) {
           await SupabaseService.instance.createSupervisor(_profile!.id);
         }
@@ -260,7 +288,10 @@ class AuthProvider extends ChangeNotifier {
   Future<bool> updateProfile(Map<String, dynamic> data) async {
     if (_profile == null) return false;
     try {
-      _profile = await SupabaseService.instance.updateProfile(_profile!.id, data);
+      _profile = await SupabaseService.instance.updateProfile(
+        _profile!.id,
+        data,
+      );
       notifyListeners();
       return true;
     } catch (e) {
@@ -287,13 +318,13 @@ class AuthProvider extends ChangeNotifier {
   // ─── HELPERS ──────────────────────────────────────────────────
 
   void _setLoading() {
-    _status = AuthStatus.loading;
+    _status       = AuthStatus.loading;
     _errorMessage = null;
     notifyListeners();
   }
 
   void _setError(String msg) {
-    _status = AuthStatus.error;
+    _status       = AuthStatus.error;
     _errorMessage = msg;
     notifyListeners();
   }
@@ -305,16 +336,16 @@ class AuthProvider extends ChangeNotifier {
 
   String _mapFirebaseError(FirebaseAuthException e) {
     switch (e.code) {
-      case 'user-not-found':        return 'Aucun compte trouvé avec cet email';
-      case 'wrong-password':        return 'Mot de passe incorrect';
-      case 'email-already-in-use':  return 'Cet email est déjà utilisé';
-      case 'invalid-email':         return 'Adresse email invalide';
-      case 'weak-password':         return 'Le mot de passe doit contenir au moins 6 caractères';
-      case 'too-many-requests':     return 'Trop de tentatives. Réessayez plus tard';
-      case 'network-request-failed':return 'Erreur réseau. Vérifiez votre connexion';
-      case 'user-disabled':         return 'Ce compte a été désactivé';
-      case 'operation-not-allowed': return 'Opération non autorisée';
-      default:                      return e.message ?? 'Une erreur d\'authentification s\'est produite';
+      case 'user-not-found':         return 'Aucun compte trouvé avec cet email';
+      case 'wrong-password':         return 'Mot de passe incorrect';
+      case 'email-already-in-use':   return 'Cet email est déjà utilisé';
+      case 'invalid-email':          return 'Adresse email invalide';
+      case 'weak-password':          return 'Le mot de passe doit contenir au moins 6 caractères';
+      case 'too-many-requests':      return 'Trop de tentatives. Réessayez plus tard';
+      case 'network-request-failed': return 'Erreur réseau. Vérifiez votre connexion';
+      case 'user-disabled':          return 'Ce compte a été désactivé';
+      case 'operation-not-allowed':  return 'Opération non autorisée';
+      default:                       return e.message ?? 'Une erreur d\'authentification s\'est produite';
     }
   }
 

@@ -11,6 +11,8 @@ import '../../../data/services/tracking_service.dart';
 import '../../providers/transport_provider.dart';
 import '../../providers/providers.dart';
 import '../../widgets/widgets.dart';
+import 'package:flutter_map_cancellable_tile_provider/flutter_map_cancellable_tile_provider.dart';
+
 
 class PublicHomeScreen extends StatefulWidget {
   const PublicHomeScreen({super.key});
@@ -247,7 +249,11 @@ class _MapView extends StatelessWidget {
           mapController: mapCtrl,
           options: MapOptions(initialCenter: center, initialZoom: 12),
           children: [
-            TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'),
+            TileLayer(
+  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+  userAgentPackageName: 'com.trasnport.dz.trasport',
+  tileProvider: CancellableNetworkTileProvider(),
+),
             MarkerLayer(
               markers: [
                 // Ma position

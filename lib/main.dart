@@ -8,60 +8,63 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'core/constants/app_constants.dart';
 import 'core/theme/app_theme.dart';
-import 'data/services/firebase_service.dart';
-import 'data/services/tracking_service.dart';
 import 'data/models/models.dart';
-
+import 'data/services/firebase_service.dart';
+import 'data/services/supabase_service.dart';
+import 'data/services/tracking_service.dart';
 import 'firebase_options.dart';
+
 import 'presentation/providers/auth_provider.dart';
 import 'presentation/providers/transport_provider.dart';
 import 'presentation/providers/providers.dart';
 
-// ─── Écrans ──────────────────────────────────────────────────────
+import 'presentation/screens/admin/admin_dashboard_screen.dart';
 import 'presentation/screens/admin/admin_screens.dart';
 import 'presentation/screens/auth/auth_screens.dart';
 import 'presentation/screens/marketplace/listing_screens.dart';
+import 'presentation/screens/marketplace/marketplace_screen.dart';
+import 'presentation/screens/public/history_screen.dart';
 import 'presentation/screens/public/public_home_screen.dart';
 import 'presentation/screens/public/request_and_transporter_request.dart';
 import 'presentation/screens/public/transporter_detail_screen.dart';
-import 'presentation/screens/public/history_screen.dart';
 import 'presentation/screens/shared/notifications_and_history.dart' hide HistoryScreen;
+import 'presentation/screens/shared/onboarding_screen.dart';
+import 'presentation/screens/shared/profile_screen.dart';
+import 'presentation/screens/supervisor/supervisor_home_screen.dart';
 import 'presentation/screens/transporter/premium_and_supervisor_screens.dart';
 import 'presentation/screens/transporter/transporter_home_screen.dart';
 import 'presentation/screens/transporter/transporter_setup_screen.dart';
-import 'presentation/screens/supervisor/supervisor_home_screen.dart';
-import 'presentation/screens/admin/admin_dashboard_screen.dart';
-import 'presentation/screens/marketplace/marketplace_screen.dart';
-import 'presentation/screens/shared/profile_screen.dart';
-import 'presentation/screens/shared/onboarding_screen.dart';
-import 'data/services/supabase_service.dart';
-
-
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  //Orientation portrait + landscape (desktop aussi)
+
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
   ]);
 
-  // Supabase
   await Supabase.initialize(
     url: AppConstants.supabaseUrl,
     anonKey: AppConstants.supabaseAnonKey,
-    realtimeClientOptions: const RealtimeClientOptions(logLevel: RealtimeLogLevel.info),
+    realtimeClientOptions: const RealtimeClientOptions(
+      logLevel: RealtimeLogLevel.info,
+    ),
   );
 
-  // Firebase FCM + Local Notifs
   await FirebaseService.instance.init();
 
-  // Background tracking
-  await TrackingService.instance.initialize();
+  // FIX #4 : TrackingService peut throw si les permissions sont absentes
+  // sur Android 11+ au premier lancement → ne pas laisser crasher main().
+  try {
+    await TrackingService.instance.initialize();
+  } catch (e) {
+    debugPrint('[TrackingService] init skipped: $e');
+  }
 
   runApp(const TransportHubApp());
 }
@@ -71,17 +74,33 @@ void main() async {
 // ─────────────────────────────────────────────────────────────────
 class TransportHubApp extends StatefulWidget {
   const TransportHubApp({super.key});
-  @override State<TransportHubApp> createState() => _TransportHubAppState();
+
+  @override
+  State<TransportHubApp> createState() => _TransportHubAppState();
 }
 
 class _TransportHubAppState extends State<TransportHubApp> {
   late final AuthProvider _authProvider;
+  late final GoRouter _router;
 
   @override
   void initState() {
     super.initState();
     _authProvider = AuthProvider();
-    _authProvider.init();
+    _router = _buildRouter(_authProvider);
+
+    // FIX #1 : init() doit être appelé APRÈS le premier frame.
+    //
+    // Firebase.authStateChanges émet la valeur courante de manière
+    // synchrone dès que le listener est attaché (dans init()).
+    // Si init() est appelé ici directement, notifyListeners() est
+    // déclenché AVANT que le widget tree soit monté → GoRouter
+    // essaie de naviguer sur un contexte inexistant → crash répété.
+    //
+    // addPostFrameCallback garantit que le widget tree est prêt.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _authProvider.init();
+    });
   }
 
   @override
@@ -103,16 +122,16 @@ class _TransportHubAppState extends State<TransportHubApp> {
         ChangeNotifierProvider(create: (_) => SupervisorProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
-      child: Consumer2<AuthProvider, ThemeProvider>(
-        builder: (context, auth, themeProv, _) {
-          final router = _buildRouter(auth);
+      // Seul ThemeProvider rebuild MaterialApp → router jamais recréé.
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProv, _) {
           return MaterialApp.router(
             title: AppConstants.appName,
             debugShowCheckedModeBanner: false,
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: themeProv.themeMode,
-            routerConfig: router,
+            routerConfig: _router,
           );
         },
       ),
@@ -123,20 +142,30 @@ class _TransportHubAppState extends State<TransportHubApp> {
     return GoRouter(
       refreshListenable: auth,
       initialLocation: '/onboarding',
-      redirect: (context, state) async {
-        final isAuth    = auth.isAuth;
-        final isLoading = auth.status == AuthStatus.initial || auth.status == AuthStatus.loading;
-        final path      = state.matchedLocation;
+      redirect: (context, state) {
+        final status = auth.status;
+        final path   = state.matchedLocation;
 
-        // En chargement → rien
-        if (isLoading) return null;
+        // FIX #3 : pendant initial/loading on retourne un écran stable.
+        //
+        // Retourner null ici laisse GoRouter sur la route courante, mais
+        // au tout premier boot cette route peut ne pas encore exister dans
+        // le widget tree → état incohérent. En retournant '/login' (ou
+        // '/onboarding' si c'est la toute première fois) on force un écran
+        // garanti d'exister, ce qui évite le crash du router state machine.
+        if (status == AuthStatus.initial || status == AuthStatus.loading) {
+          // Si on est déjà sur une route auth → on reste, pas de boucle.
+          const stableRoutes = ['/onboarding', '/login'];
+          if (stableRoutes.contains(path)) return null;
+          return '/login';
+        }
 
-        // Pages publiques (auth)
-        final authPaths = ['/login', '/register', '/forgot-password', '/onboarding'];
+        final isAuth     = status == AuthStatus.authenticated && auth.profile != null;
+        final authPaths  = ['/login', '/register', '/forgot-password', '/onboarding'];
         final isAuthPath = authPaths.any((p) => path.startsWith(p));
 
         if (!isAuth && !isAuthPath) return '/login';
-        if (isAuth && isAuthPath) return _homeByRole(auth.role);
+        if (isAuth && isAuthPath)   return _homeByRole(auth.role);
 
         return null;
       },
@@ -144,7 +173,12 @@ class _TransportHubAppState extends State<TransportHubApp> {
         // ─── AUTH ────────────────────────────────────────────────
         GoRoute(path: '/onboarding',      builder: (_, __) => const OnboardingScreen()),
         GoRoute(path: '/login',           builder: (_, __) => const LoginScreen()),
-        GoRoute(path: '/register',        builder: (_, s) => RegisterScreen(isGoogleFlow: s.uri.queryParameters['google'] == 'true')),
+        GoRoute(
+          path: '/register',
+          builder: (_, s) => RegisterScreen(
+            isGoogleFlow: s.uri.queryParameters['google'] == 'true',
+          ),
+        ),
         GoRoute(path: '/forgot-password', builder: (_, __) => const ForgotPasswordScreen()),
 
         // ─── PUBLIC (CLIENT) ─────────────────────────────────────
@@ -152,10 +186,25 @@ class _TransportHubAppState extends State<TransportHubApp> {
           path: '/home/public',
           builder: (_, __) => const PublicHomeScreen(),
           routes: [
-            GoRoute(path: 'transporter/:id',  builder: (_, s) => TransporterDetailScreen(transporterId: s.pathParameters['id']!)),
-            GoRoute(path: 'request/:id',      builder: (_, s) => RequestScreen(transporterId: s.pathParameters['id']!)),
-            GoRoute(path: 'tracking/:id',     builder: (_, s) => TrackingScreen(requestId: s.pathParameters['id']!)),
-            GoRoute(path: 'history',          builder: (_, __) => const HistoryScreen()),
+            GoRoute(
+              path: 'transporter/:id',
+              builder: (_, s) => TransporterDetailScreen(
+                transporterId: s.pathParameters['id']!,
+              ),
+            ),
+            GoRoute(
+              path: 'request/:id',
+              builder: (_, s) => RequestScreen(
+                transporterId: s.pathParameters['id']!,
+              ),
+            ),
+            GoRoute(
+              path: 'tracking/:id',
+              builder: (_, s) => TrackingScreen(
+                requestId: s.pathParameters['id']!,
+              ),
+            ),
+            GoRoute(path: 'history', builder: (_, __) => const HistoryScreen()),
           ],
         ),
 
@@ -164,10 +213,15 @@ class _TransportHubAppState extends State<TransportHubApp> {
           path: '/home/transporter',
           builder: (_, __) => const TransporterHomeScreen(),
           routes: [
-            GoRoute(path: 'setup',      builder: (_, __) => const TransporterSetupScreen()),
-            GoRoute(path: 'request/:id',builder: (_, s) => TransporterRequestScreen(requestId: s.pathParameters['id']!)),
-            GoRoute(path: 'premium',    builder: (_, __) => const PremiumStoreScreen()),
-            GoRoute(path: 'history',    builder: (_, __) => const HistoryScreen()),
+            GoRoute(path: 'setup',    builder: (_, __) => const TransporterSetupScreen()),
+            GoRoute(
+              path: 'request/:id',
+              builder: (_, s) => TransporterRequestScreen(
+                requestId: s.pathParameters['id']!,
+              ),
+            ),
+            GoRoute(path: 'premium', builder: (_, __) => const PremiumStoreScreen()),
+            GoRoute(path: 'history', builder: (_, __) => const HistoryScreen()),
           ],
         ),
 
@@ -176,7 +230,10 @@ class _TransportHubAppState extends State<TransportHubApp> {
           path: '/home/supervisor',
           builder: (_, __) => const SupervisorHomeScreen(),
           routes: [
-            GoRoute(path: 'add-transporter', builder: (_, __) => const SupervisorAddTransporterScreen()),
+            GoRoute(
+              path: 'add-transporter',
+              builder: (_, __) => const SupervisorAddTransporterScreen(),
+            ),
           ],
         ),
 
@@ -185,19 +242,24 @@ class _TransportHubAppState extends State<TransportHubApp> {
           path: '/home/admin',
           builder: (_, __) => const AdminDashboardScreen(),
           routes: [
-            GoRoute(path: 'validate',      builder: (_, __) => const AdminTransporterValidationScreen()),
-            GoRoute(path: 'rules',         builder: (_, __) => const AdminBusinessRulesScreen()),
-            GoRoute(path: 'supervisors',   builder: (_, __) => const AdminSupervisorsScreen()),
+            GoRoute(path: 'validate',    builder: (_, __) => const AdminTransporterValidationScreen()),
+            GoRoute(path: 'rules',       builder: (_, __) => const AdminBusinessRulesScreen()),
+            GoRoute(path: 'supervisors', builder: (_, __) => const AdminSupervisorsScreen()),
           ],
         ),
 
-        // ─── MARKETPLACE (tous rôles) ─────────────────────────────
+        // ─── MARKETPLACE ─────────────────────────────────────────
         GoRoute(
           path: '/marketplace',
           builder: (_, __) => const MarketplaceScreen(),
           routes: [
-            GoRoute(path: 'listing/:id', builder: (_, s) => ListingDetailScreen(listingId: s.pathParameters['id']!)),
-            GoRoute(path: 'create',      builder: (_, __) => const CreateListingScreen()),
+            GoRoute(
+              path: 'listing/:id',
+              builder: (_, s) => ListingDetailScreen(
+                listingId: s.pathParameters['id']!,
+              ),
+            ),
+            GoRoute(path: 'create', builder: (_, __) => const CreateListingScreen()),
           ],
         ),
 
@@ -240,22 +302,30 @@ class ThemeProvider extends ChangeNotifier {
 }
 
 // ─────────────────────────────────────────────────────────────────
-// MARKETPLACE PROVIDER (stub — à compléter)
+// MARKETPLACE PROVIDER
 // ─────────────────────────────────────────────────────────────────
 class MarketplaceProvider extends ChangeNotifier {
   List<MarketplaceListingModel> _listings = [];
-  bool _isLoading = false;
+  bool    _isLoading   = false;
   String? _error;
-  int _currentPage = 0;
-  bool _hasMore = true;
+  int     _currentPage = 0;
+  bool    _hasMore     = true;
 
-  List<MarketplaceListingModel> get listings   => _listings;
-  bool                          get isLoading  => _isLoading;
-  String?                       get error      => _error;
-  bool                          get hasMore    => _hasMore;
+  List<MarketplaceListingModel> get listings  => _listings;
+  bool    get isLoading => _isLoading;
+  String? get error     => _error;
+  bool    get hasMore   => _hasMore;
 
-  Future<void> loadListings({String? categoryId, String? regionId, bool refresh = false}) async {
-    if (refresh) { _listings = []; _currentPage = 0; _hasMore = true; }
+  Future<void> loadListings({
+    String? categoryId,
+    String? regionId,
+    bool refresh = false,
+  }) async {
+    if (refresh) {
+      _listings    = [];
+      _currentPage = 0;
+      _hasMore     = true;
+    }
     if (!_hasMore || _isLoading) return;
 
     _isLoading = true;
@@ -319,18 +389,19 @@ class MarketplaceProvider extends ChangeNotifier {
 // ─────────────────────────────────────────────────────────────────
 class SupervisorProvider extends ChangeNotifier {
   SupervisorModel? _supervisor;
-  bool _isLoading = false;
+  bool    _isLoading = false;
   String? _error;
 
   SupervisorModel? get supervisor => _supervisor;
-  bool             get isLoading  => _isLoading;
-  String?          get error      => _error;
+  bool    get isLoading => _isLoading;
+  String? get error     => _error;
 
   Future<void> loadSupervisor(String profileId) async {
     _isLoading = true;
     notifyListeners();
     try {
-      _supervisor = await SupabaseService.instance.getSupervisorByProfileId(profileId);
+      _supervisor = await SupabaseService.instance
+          .getSupervisorByProfileId(profileId);
     } catch (e) {
       _error = e.toString();
     }
@@ -343,7 +414,6 @@ class SupervisorProvider extends ChangeNotifier {
     required String supervisorId,
   }) async {
     try {
-      // Chercher transporteur par code (email ou ID)
       final transporterData = await SupabaseService.instance.client
           .from(AppConstants.tTransporters)
           .select('id, profiles!inner(email)')
@@ -370,5 +440,3 @@ class SupervisorProvider extends ChangeNotifier {
     }
   }
 }
-
-
