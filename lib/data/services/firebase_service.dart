@@ -189,15 +189,15 @@ class FirebaseService {
   // ─── SIGN OUT ─────────────────────────────────────────────────
 
   Future<void> signOut() async {
-    await Future.wait([
-      _auth.signOut(),
-      // Instanciation locale pour le sign-out aussi
-      GoogleSignIn().signOut().catchError((_) {
-return null
-}),
-    ]);
-    await _messaging.deleteToken();
-  }
+  await Future.wait([
+    _auth.signOut(),
+    GoogleSignIn().signOut().catchError((_) {
+      return null;
+    }),
+  ]);
+
+  await _messaging.deleteToken();
+}
 
   // ─── UPDATE PROFILE ───────────────────────────────────────────
 
