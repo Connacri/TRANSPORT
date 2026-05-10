@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/models/models.dart';
 import '../../data/services/firebase_service.dart';
 import '../../data/services/supabase_service.dart';
-import 'package:flutter/material.dart';
+
 
 
 enum AuthStatus { initial, loading, authenticated, unauthenticated, error }
