@@ -141,35 +141,39 @@ class _TransportHubAppState extends State<TransportHubApp> {
   GoRouter _buildRouter(AuthProvider auth) {
     return GoRouter(
       refreshListenable: auth,
-      initialLocation: '/onboarding',
+      initialLocation: '/',
       redirect: (context, state) {
         final status = auth.status;
         final path   = state.matchedLocation;
 
-        // FIX #3 : pendant initial/loading on retourne un écran stable.
-        //
-        // Retourner null ici laisse GoRouter sur la route courante, mais
-        // au tout premier boot cette route peut ne pas encore exister dans
-        // le widget tree → état incohérent. En retournant '/login' (ou
-        // '/onboarding' si c'est la toute première fois) on force un écran
-        // garanti d'exister, ce qui évite le crash du router state machine.
         if (status == AuthStatus.initial || status == AuthStatus.loading) {
-          // Si on est déjà sur une route auth → on reste, pas de boucle.
-          const stableRoutes = ['/onboarding', '/login'];
-          if (stableRoutes.contains(path)) return null;
-          return '/login';
+          return '/';
         }
 
-        final isAuth     = status == AuthStatus.authenticated && auth.profile != null;
-        final authPaths  = ['/login', '/register', '/forgot-password', '/onboarding'];
-        final isAuthPath = authPaths.any((p) => path.startsWith(p));
+        final isAuth = status == AuthStatus.authenticated && auth.profile != null;
+        final authPaths = ['/login', '/register', '/forgot-password', '/onboarding', '/'];
+        final isAuthPath = authPaths.any((p) => path == p);
 
-        if (!isAuth && !isAuthPath) return '/login';
-        if (isAuth && isAuthPath)   return _homeByRole(auth.role);
+        if (!isAuth) {
+          if (!isAuthPath) return '/onboarding';
+          return null;
+        }
+
+        if (isAuthPath) {
+          return _homeByRole(auth.role);
+        }
 
         return null;
       },
       routes: [
+        GoRoute(
+          path: '/',
+          builder: (_, __) => const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(color: Color(0xFFFF6B35)),
+            ),
+          ),
+        ),
         // ─── AUTH ────────────────────────────────────────────────
         GoRoute(path: '/onboarding',      builder: (_, __) => const OnboardingScreen()),
         GoRoute(path: '/login',           builder: (_, __) => const LoginScreen()),
