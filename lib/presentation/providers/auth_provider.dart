@@ -28,19 +28,6 @@ class AuthProvider extends ChangeNotifier {
     _authSub = FirebaseService.instance.authStateChanges.listen(_onAuthStateChanged);
   }
 
-  // FIX #2 : éliminer le double notifyListeners() qui provoquait
-  // un double redirect dans GoRouter.
-  //
-  // Problème original :
-  //   - signInWithEmail() appelle _setLoading() → notify #1
-  //   - Firebase fire _onAuthStateChanged → le guard "if (_status != loading)"
-  //     laissait passer un notify #2 (loading) inutile avant le notify final
-  //   → GoRouter recevait 2 refreshes → 2 redirects → état incohérent
-  //
-  // Solution :
-  //   - On ne notifie PAS si on est déjà en loading (quelqu'un d'autre
-  //     a déjà notifié pour nous, ex: signInWithEmail).
-  //   - Un seul notifyListeners() à la toute fin, quelle que soit l'issue.
   Future<void> _onAuthStateChanged(User? user) async {
     if (user == null) {
       _status  = AuthStatus.unauthenticated;
@@ -49,15 +36,9 @@ class AuthProvider extends ChangeNotifier {
       return;
     }
 
-    // Si on n'est pas déjà en loading (= personne n'a encore notifié),
-    // on notifie UNE FOIS pour afficher l'indicateur de chargement.
-    // Si on est déjà en loading (signInWithEmail a déjà notifié),
-    // on skip ce notify pour éviter le double refresh du router.
     final needsInitialNotify = _status != AuthStatus.loading;
     _status = AuthStatus.loading;
-    if (needsInitialNotify) {
-      notifyListeners();
-    }
+    if (needsInitialNotify) notifyListeners();
 
     try {
       _profile = await SupabaseService.instance.getProfileByFirebaseUid(user.uid);
@@ -73,7 +54,6 @@ class AuthProvider extends ChangeNotifier {
       _errorMessage = _mapError(e);
     }
 
-    // Notify final unique → GoRouter recalcule le redirect UNE SEULE FOIS.
     notifyListeners();
   }
 
@@ -164,15 +144,12 @@ class AuthProvider extends ChangeNotifier {
     required String email,
     required String password,
   }) async {
-    _setLoading(); // notify #1 (loading)
+    _setLoading();
     try {
       await FirebaseService.instance.signInWithEmail(
         email: email,
         password: password,
       );
-      // _onAuthStateChanged prend le relais et fait le notify final.
-      // Grâce au guard needsInitialNotify, il n'y aura pas de 2e notify
-      // intermédiaire → un seul refresh du router.
       return true;
     } on FirebaseAuthException catch (e) {
       _setError(_mapFirebaseError(e));
@@ -184,6 +161,8 @@ class AuthProvider extends ChangeNotifier {
   }
 
   // ─── GOOGLE SIGN IN ───────────────────────────────────────────
+  // Utilise FirebaseService.signInWithGoogle() pattern check31.
+  // La création du profil Supabase reste celle de TransportHub.
 
   Future<({bool success, bool isNewUser})> signInWithGoogle({
     UserRole? roleIfNew,
@@ -192,7 +171,10 @@ class AuthProvider extends ChangeNotifier {
   }) async {
     _setLoading();
     try {
+      // ① Appel Google Sign-In via Firebase — pattern check31
       final credential = await FirebaseService.instance.signInWithGoogle();
+
+      // ② Utilisateur a appuyé Annuler dans la popup Google
       if (credential == null) {
         _status = AuthStatus.unauthenticated;
         notifyListeners();
@@ -200,16 +182,24 @@ class AuthProvider extends ChangeNotifier {
       }
 
       final user = credential.user!;
-      _profile = await SupabaseService.instance.getProfileByFirebaseUid(user.uid);
+
+      // ③ Vérifier si le profil Supabase existe déjà
+      _profile = await SupabaseService.instance
+          .getProfileByFirebaseUid(user.uid);
 
       final isNew = _profile == null;
+
       if (isNew) {
+        // ④a Nouvel utilisateur — on a besoin du rôle
         if (roleIfNew == null) {
+          // Pas de rôle fourni → rediriger vers /register?google=true
+          // pour que l'utilisateur choisisse son rôle
           _status = AuthStatus.unauthenticated;
           notifyListeners();
           return (success: true, isNewUser: true);
         }
 
+        // ④b Créer le profil Supabase — même logique que TransportHub
         _profile = await SupabaseService.instance.createProfile(
           firebaseUid: user.uid,
           email: user.email!,
@@ -219,6 +209,7 @@ class AuthProvider extends ChangeNotifier {
           regionId: regionId,
         );
 
+        // ④c Si superviseur, créer l'entrée supervisor
         if (roleIfNew == UserRole.supervisor) {
           await SupabaseService.instance.createSupervisor(
             _profile!.id,
@@ -227,6 +218,7 @@ class AuthProvider extends ChangeNotifier {
         }
       }
 
+      // ⑤ Post-login : last_seen + FCM token
       await _postLoginActions(_profile!);
       _status = AuthStatus.authenticated;
       notifyListeners();
@@ -345,7 +337,7 @@ class AuthProvider extends ChangeNotifier {
       case 'network-request-failed': return 'Erreur réseau. Vérifiez votre connexion';
       case 'user-disabled':          return 'Ce compte a été désactivé';
       case 'operation-not-allowed':  return 'Opération non autorisée';
-      default:                       return e.message ?? 'Une erreur d\'authentification s\'est produite';
+      default:                       return e.message ?? "Une erreur d'authentification s'est produite";
     }
   }
 

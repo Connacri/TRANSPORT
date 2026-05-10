@@ -12,13 +12,14 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await _showLocalNotification(message);
 }
 
-final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
+final FlutterLocalNotificationsPlugin _localNotifications =
+    FlutterLocalNotificationsPlugin();
 
 Future<void> _showLocalNotification(RemoteMessage message) async {
   const channel = AndroidNotificationChannel(
     'transport_hub_channel',
     'TransportHub Notifications',
-    description: 'Notifications de l\'application TransportHub',
+    description: "Notifications de l'application TransportHub",
     importance: Importance.max,
     playSound: true,
     enableVibration: true,
@@ -36,23 +37,26 @@ Future<void> _showLocalNotification(RemoteMessage message) async {
         importance: Importance.max,
         priority: Priority.high,
         icon: '@mipmap/ic_launcher',
-        color:   const Color(0xFFFF6B35),
+        color: const Color(0xFFFF6B35),
         largeIcon: const DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
-        styleInformation: BigTextStyleInformation(message.notification?.body ?? ''),
+        styleInformation:
+            BigTextStyleInformation(message.notification?.body ?? ''),
       ),
     ),
     payload: message.data.toString(),
   );
 }
 
-// ignore: avoid_classes_with_only_static_members
 class FirebaseService {
   FirebaseService._();
   static final FirebaseService instance = FirebaseService._();
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
+
+  // ─── PAS de GoogleSignIn comme champ de classe ────────────────
+  // Instanciation locale dans signInWithGoogle() — pattern check31
+  // qui évite le bug "popup ne revient pas"
 
   User? get currentUser => _auth.currentUser;
   Stream<User?> get authStateChanges => _auth.authStateChanges();
@@ -65,19 +69,17 @@ class FirebaseService {
   }
 
   Future<void> _initLocalNotifications() async {
-    const initSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const initSettingsAndroid =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
     const initSettings = InitializationSettings(
       android: initSettingsAndroid,
     );
 
     await _localNotifications.initialize(
       initSettings,
-      onDidReceiveNotificationResponse: (details) {
-        // Navigation gérée par le provider via payload
-      },
+      onDidReceiveNotificationResponse: (details) {},
     );
 
-    // Canal haute priorité Android
     const channel = AndroidNotificationChannel(
       'transport_hub_channel',
       'TransportHub Notifications',
@@ -85,12 +87,12 @@ class FirebaseService {
       importance: Importance.max,
     );
     await _localNotifications
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(channel);
   }
 
   Future<void> _initFCM() async {
-    // Permissions
     await _messaging.requestPermission(
       alert: true,
       badge: true,
@@ -100,12 +102,10 @@ class FirebaseService {
 
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
-    // Foreground
     FirebaseMessaging.onMessage.listen((message) async {
       await _showLocalNotification(message);
     });
 
-    // Foreground settings iOS (Android handled by channel)
     await _messaging.setForegroundNotificationPresentationOptions(
       alert: true,
       badge: true,
@@ -155,18 +155,33 @@ class FirebaseService {
     await _auth.currentUser?.sendEmailVerification();
   }
 
-  // ─── GOOGLE SIGN IN ───────────────────────────────────────────
+  // ─── GOOGLE SIGN IN — pattern check31 ────────────────────────
+  // Instanciation locale de GoogleSignIn() dans la méthode.
+  // Retourne null si l'utilisateur annule → géré proprement par AuthProvider.
 
   Future<UserCredential?> signInWithGoogle() async {
-    final googleUser = await _googleSignIn.signIn();
-    if (googleUser == null) return null;
+    try {
+      // Instanciation locale — clé du fix check31
+      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
 
-    final googleAuth = await googleUser.authentication;
-    final credential = GoogleAuthProvider.credential(
-      accessToken: googleAuth.accessToken,
-      idToken: googleAuth.idToken,
-    );
-    return await _auth.signInWithCredential(credential);
+      if (googleUser == null) {
+        // Utilisateur a annulé la popup → on retourne null proprement
+        return null;
+      }
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      return await _auth.signInWithCredential(credential);
+    } catch (e, s) {
+      debugPrint('[FirebaseService] Google Sign-In error: $e\n$s');
+      rethrow;
+    }
   }
 
   // ─── SIGN OUT ─────────────────────────────────────────────────
@@ -174,9 +189,9 @@ class FirebaseService {
   Future<void> signOut() async {
     await Future.wait([
       _auth.signOut(),
-      _googleSignIn.signOut(),
+      // Instanciation locale pour le sign-out aussi
+      GoogleSignIn().signOut().catchError((_) {}),
     ]);
-    // Invalider le token FCM
     await _messaging.deleteToken();
   }
 
@@ -195,7 +210,6 @@ class FirebaseService {
     Map<String, String>? data,
   }) async {
     try {
-      // Logique côté Supabase Edge Function "send-notification"
       await SupabaseService.instance.client.functions.invoke(
         'send-notification',
         body: {
@@ -206,7 +220,7 @@ class FirebaseService {
         },
       );
     } catch (_) {
-      // Fallback: notification DB uniquement
+      // Fallback : notification DB uniquement
       await SupabaseService.instance.insertNotification(
         recipientId: recipientProfileId,
         title: title,
