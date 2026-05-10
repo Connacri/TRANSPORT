@@ -37,25 +37,39 @@ import 'presentation/screens/transporter/transporter_home_screen.dart';
 import 'presentation/screens/transporter/transporter_setup_screen.dart';
 
 void main() async {
+  debugPrint('--- APP STARTING ---');
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialisation critique (minimale)
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  try {
+    debugPrint('[Init] Firebase...');
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    debugPrint('[Init] Firebase OK');
 
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-  ]);
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+    ]);
 
-  await Supabase.initialize(
-    url: AppConstants.supabaseUrl,
-    anonKey: AppConstants.supabaseAnonKey,
-  );
+    debugPrint('[Init] Supabase...');
+    await Supabase.initialize(
+      url: AppConstants.supabaseUrl,
+      anonKey: AppConstants.supabaseAnonKey,
+    );
+    debugPrint('[Init] Supabase OK');
 
-  await FirebaseService.instance.init();
+    debugPrint('[Init] FirebaseService (FCM)...');
+    await FirebaseService.instance.init();
+    debugPrint('[Init] FirebaseService OK');
 
-  runApp(const TransportHubApp());
+    runApp(const TransportHubApp());
+    debugPrint('[Init] runApp() called');
+  } catch (e, s) {
+    debugPrint('!!! CRITICAL INIT ERROR: $e');
+    debugPrint('$s');
+    // On essaie quand même de lancer l'app pour ne pas rester sur un écran noir
+    runApp(const TransportHubApp());
+  }
 }
 
 class TransportHubApp extends StatefulWidget {
@@ -86,12 +100,14 @@ class _TransportHubAppState extends State<TransportHubApp> {
     // 2. Laisser le temps au moteur Flutter de se stabiliser
     await Future.delayed(const Duration(milliseconds: 200));
     
-    // 3. Initialisation des services secondaires (NON-BLOQUANT)
-    try {
-      await TrackingService.instance.initialize();
-    } catch (e) {
-      debugPrint('[TrackingService] init skipped: $e');
-    }
+    // 3. Initialisation des services secondaires (TOTALEMENT NON-BLOQUANT)
+    // On ne met pas de "await" ici pour que si le service met du temps,
+    // cela n'empêche pas l'utilisateur d'accéder à l'app.
+    TrackingService.instance.initialize().then((_) {
+      debugPrint('[TrackingService] initialized');
+    }).catchError((e) {
+      debugPrint('[TrackingService] init failed: $e');
+    });
   }
 
   @override

@@ -95,12 +95,17 @@ class FirebaseService {
   }
 
   Future<void> _initFCM() async {
-    await _messaging.requestPermission(
+    // On ne bloque pas le démarrage pour les permissions
+    _messaging.requestPermission(
       alert: true,
       badge: true,
       sound: true,
       provisional: false,
-    );
+    ).then((settings) {
+      debugPrint('[FirebaseService] FCM Permission status: ${settings.authorizationStatus}');
+    }).catchError((e) {
+      debugPrint('[FirebaseService] FCM Permission error: $e');
+    });
 
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 

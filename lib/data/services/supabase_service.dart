@@ -14,12 +14,18 @@ class SupabaseService {
   // ─── PROFILES ────────────────────────────────────────────────
 
   Future<ProfileModel?> getProfileByFirebaseUid(String uid) async {
-    final res = await client
-        .from(AppConstants.tProfiles)
-        .select()
-        .eq('firebase_uid', uid)
-        .maybeSingle();
-    return res != null ? ProfileModel.fromJson(res) : null;
+    try {
+      final res = await client
+          .from(AppConstants.tProfiles)
+          .select()
+          .eq('firebase_uid', uid)
+          .maybeSingle()
+          .timeout(const Duration(seconds: 10)); // Timeout de sécurité
+      return res != null ? ProfileModel.fromJson(res) : null;
+    } catch (e) {
+      debugPrint('[SupabaseService] Error fetching profile: $e');
+      rethrow;
+    }
   }
 
   Future<ProfileModel> createProfile({

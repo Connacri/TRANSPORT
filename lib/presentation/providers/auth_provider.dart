@@ -29,10 +29,28 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> init() async {
     debugPrint('[AuthProvider] Initializing...');
+    
+    // 1. Écouter les changements futurs
     _authSub = FirebaseService.instance.authStateChanges.listen((user) {
-      debugPrint('[AuthProvider] Auth state changed: ${user?.email ?? "null"}');
+      debugPrint('[AuthProvider] Auth state changed (Stream): ${user?.email ?? "null"}');
       _onAuthStateChanged(user);
     });
+
+    // 2. Vérification immédiate (Fix pour les flux qui restent muets au départ)
+    final currentUser = FirebaseService.instance.currentUser;
+    if (currentUser != null) {
+      debugPrint('[AuthProvider] Immediate user found: ${currentUser.email}');
+      _onAuthStateChanged(currentUser);
+    } else {
+      // Si pas de user immédiat, on laisse le temps au stream ou on force un état initial
+      Future.delayed(const Duration(seconds: 2), () {
+        if (_status == AuthStatus.initial) {
+          debugPrint('[AuthProvider] No user after 2s, setting unauthenticated');
+          _status = AuthStatus.unauthenticated;
+          notifyListeners();
+        }
+      });
+    }
   }
 
   Future<void> _onAuthStateChanged(fb.User? user) async {
