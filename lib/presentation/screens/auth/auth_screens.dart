@@ -61,18 +61,22 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
   Future<void> _googleLogin() async {
     final auth = context.read<AuthProvider>();
-    final result = await auth.signInWithGoogle();
+    final user = await auth.signInWithGoogle();
     if (!mounted) return;
-    if (result.isNewUser) {
-      context.push('/register?google=true');
-    } else if (!result.success && auth.errorMessage != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(auth.errorMessage!),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+
+    if (user != null) {
+      // Si le profil n'existe pas encore dans Supabase (cas rare car signInWithGoogle le crée par défaut en 'public')
+      // ou si on veut forcer l'utilisateur à compléter ses infos s'il est nouveau.
+      // Ici, on vérifie si l'utilisateur est authentifié.
+      if (auth.errorMessage != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(auth.errorMessage!),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
 
@@ -254,12 +258,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     bool ok;
     if (widget.isGoogleFlow) {
-      final res = await auth.signInWithGoogle(
+      final user = await auth.signInWithGoogle(
         roleIfNew: _selectedRole,
         regionId: _selectedRegionId,
         phone: _phoneCtrl.text.trim(),
       );
-      ok = res.success;
+      ok = user != null;
     } else {
       ok = await auth.signUpWithEmail(
         email: _emailCtrl.text.trim(),

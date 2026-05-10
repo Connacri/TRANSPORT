@@ -1,7 +1,8 @@
 // lib/presentation/providers/auth_provider.dart
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' hide User;
+import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/models/models.dart';
 import '../../data/services/firebase_service.dart';
@@ -30,7 +31,7 @@ class AuthProvider extends ChangeNotifier {
     _authSub = FirebaseService.instance.authStateChanges.listen(_onAuthStateChanged);
   }
 
-  Future<void> _onAuthStateChanged(User? user) async {
+  Future<void> _onAuthStateChanged(fb.User? user) async {
     if (user == null) {
       _status  = AuthStatus.unauthenticated;
       _profile = null;
@@ -162,75 +163,50 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // ─── GOOGLE SIGN IN ───────────────────────────────────────────
-  // Utilise FirebaseService.signInWithGoogle() pattern check31.
-  // La création du profil Supabase reste celle de TransportHub.
 
-  Future<({bool success, bool isNewUser})> signInWithGoogle({
+
+  Future<fb.User?> signInWithGoogle({
     UserRole? roleIfNew,
     String? regionId,
     String? phone,
   }) async {
     _setLoading();
     try {
-      // ① Appel Google Sign-In via Firebase — pattern check31
-      final credential = await FirebaseService.instance.signInWithGoogle();
+      final fb.UserCredential? userCredential =
+          await FirebaseService.instance.signInWithGoogle();
 
-      // ② Utilisateur a appuyé Annuler dans la popup Google
-      if (credential == null) {
-        _status = AuthStatus.unauthenticated;
+      if (userCredential == null) {
+        _status = _profile != null ? AuthStatus.authenticated : AuthStatus.unauthenticated;
         notifyListeners();
-        return (success: false, isNewUser: false);
+        return null;
       }
 
-      final user = credential.user!;
-
-      // ③ Vérifier si le profil Supabase existe déjà
-      _profile = await SupabaseService.instance
-          .getProfileByFirebaseUid(user.uid);
-
-      final isNew = _profile == null;
-
-      if (isNew) {
-        // ④a Nouvel utilisateur — on a besoin du rôle
-        if (roleIfNew == null) {
-          // Pas de rôle fourni → rediriger vers /register?google=true
-          // pour que l'utilisateur choisisse son rôle
-          _status = AuthStatus.unauthenticated;
-          notifyListeners();
-          return (success: true, isNewUser: true);
-        }
-
-        // ④b Créer le profil Supabase — même logique que TransportHub
-        _profile = await SupabaseService.instance.createProfile(
-          firebaseUid: user.uid,
-          email: user.email!,
+      final fb.User? firebaseUser = userCredential.user;
+      if (firebaseUser != null) {
+        // 🔥 Insertion dans Supabase après 1re connexion
+        await _createUserInSupabase(
+          firebaseUser,
           role: roleIfNew,
-          fullName: user.displayName,
-          phone: phone,
           regionId: regionId,
+          phone: phone,
         );
 
-        // ④c Si superviseur, créer l'entrée supervisor
-        if (roleIfNew == UserRole.supervisor) {
-          await SupabaseService.instance.createSupervisor(
-            _profile!.id,
-            regionId: regionId,
-          );
+        // Si le profil a été chargé/créé avec succès
+        if (_profile != null) {
+          _status = AuthStatus.authenticated;
+        } else {
+          _status = AuthStatus.unauthenticated;
         }
       }
-
-      // ⑤ Post-login : last_seen + FCM token
-      await _postLoginActions(_profile!);
-      _status = AuthStatus.authenticated;
       notifyListeners();
-      return (success: true, isNewUser: isNew);
-    } catch (e) {
+      return firebaseUser;
+    } catch (e, s) {
+      debugPrint("Erreur lors de la connexion avec Google : ${e.toString()}");
+      debugPrint("Stacktrace : $s");
       _setError(_mapError(e));
-      return (success: false, isNewUser: false);
+      return null;
     }
   }
-
   // ─── RESET PASSWORD ───────────────────────────────────────────
 
   Future<bool> sendPasswordReset(String email) async {
@@ -310,6 +286,39 @@ class AuthProvider extends ChangeNotifier {
   }
 
   // ─── HELPERS ──────────────────────────────────────────────────
+
+  Future<void> _createUserInSupabase(
+    fb.User firebaseUser, {
+    UserRole? role,
+    String? regionId,
+    String? phone,
+  }) async {
+    try {
+      // Vérifie si le user existe déjà
+      final existing = await SupabaseService.instance
+          .getProfileByFirebaseUid(firebaseUser.uid);
+
+      if (existing != null) {
+        _profile = existing;
+        return;
+      }
+
+      // Insertion
+      _profile = await SupabaseService.instance.createProfile(
+        firebaseUid: firebaseUser.uid,
+        email: firebaseUser.email ?? '',
+        role: role ?? UserRole.public,
+        fullName: firebaseUser.displayName,
+        phone: phone ?? firebaseUser.phoneNumber,
+        regionId: regionId,
+        avatarUrl: firebaseUser.photoURL,
+      );
+
+      await _postLoginActions(_profile!);
+    } catch (e) {
+      debugPrint('Erreur insertion Supabase : $e');
+    }
+  }
 
   void _setLoading() {
     _status       = AuthStatus.loading;

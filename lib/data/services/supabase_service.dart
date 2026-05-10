@@ -29,6 +29,7 @@ class SupabaseService {
     String? fullName,
     String? phone,
     String? regionId,
+    String? avatarUrl,
   }) async {
     final res = await client
         .from(AppConstants.tProfiles)
@@ -39,6 +40,7 @@ class SupabaseService {
           'full_name': fullName,
           'phone': phone,
           'region_id': regionId,
+          'avatar_url': avatarUrl,
         })
         .select()
         .single();
