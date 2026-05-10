@@ -7,7 +7,7 @@ import '../../data/models/models.dart';
 import '../../data/services/firebase_service.dart';
 import '../../data/services/supabase_service.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
+
 
 enum AuthStatus { initial, loading, authenticated, unauthenticated, error }
 
