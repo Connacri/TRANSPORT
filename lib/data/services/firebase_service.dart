@@ -192,7 +192,9 @@ class FirebaseService {
     await Future.wait([
       _auth.signOut(),
       // Instanciation locale pour le sign-out aussi
-      GoogleSignIn().signOut().catchError((_) {}),
+      GoogleSignIn().signOut().catchError((_) {
+return null
+}),
     ]);
     await _messaging.deleteToken();
   }
