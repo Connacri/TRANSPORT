@@ -22,6 +22,8 @@ export '../../../presentation/screens/admin/admin_screens.dart'
 export 'shared/notifications_and_history.dart'
     show NotificationsScreen;
 
+export 'shared/splash_screen.dart' show SplashScreen;
+
 // lib/presentation/screens/marketplace/listing_detail_screen.dart
 export 'marketplace/listing_screens.dart'
     show ListingDetailScreen;

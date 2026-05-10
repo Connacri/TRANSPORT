@@ -28,11 +28,16 @@ class AuthProvider extends ChangeNotifier {
   // ─── INIT ────────────────────────────────────────────────────
 
   Future<void> init() async {
-    _authSub = FirebaseService.instance.authStateChanges.listen(_onAuthStateChanged);
+    debugPrint('[AuthProvider] Initializing...');
+    _authSub = FirebaseService.instance.authStateChanges.listen((user) {
+      debugPrint('[AuthProvider] Auth state changed: ${user?.email ?? "null"}');
+      _onAuthStateChanged(user);
+    });
   }
 
   Future<void> _onAuthStateChanged(fb.User? user) async {
     if (user == null) {
+      debugPrint('[AuthProvider] No user found, setting unauthenticated');
       _status  = AuthStatus.unauthenticated;
       _profile = null;
       notifyListeners();
@@ -44,28 +49,35 @@ class AuthProvider extends ChangeNotifier {
     if (needsInitialNotify) notifyListeners();
 
     try {
+      debugPrint('[AuthProvider] Fetching profile for UID: ${user.uid}');
       _profile = await SupabaseService.instance.getProfileByFirebaseUid(user.uid);
+      debugPrint('[AuthProvider] Profile found: ${_profile != null}');
 
       if (_profile == null) {
         _status = AuthStatus.unauthenticated;
       } else {
+        debugPrint('[AuthProvider] Profile role: ${_profile!.role}');
         await _postLoginActions(_profile!);
         _status = AuthStatus.authenticated;
       }
     } catch (e) {
+      debugPrint('[AuthProvider] Error during auth state change: $e');
       _status       = AuthStatus.error;
       _errorMessage = _mapError(e);
     }
 
+    debugPrint('[AuthProvider] Final status: $_status');
     notifyListeners();
   }
 
   Future<void> _postLoginActions(ProfileModel profile) async {
     try {
+      debugPrint('[AuthProvider] Performing post-login actions...');
       await SupabaseService.instance.updateLastSeen(profile.id);
 
       final token = await FirebaseService.instance.getFcmToken();
       if (token != null) {
+        debugPrint('[AuthProvider] FCM Token obtained');
         final platform = defaultTargetPlatform == TargetPlatform.android
             ? 'android'
             : 'windows';
@@ -74,10 +86,13 @@ class AuthProvider extends ChangeNotifier {
           token: token,
           platform: platform,
         );
+      } else {
+        debugPrint('[AuthProvider] No FCM Token obtained (timeout or error)');
       }
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('user_role', profile.role.name);
+      debugPrint('[AuthProvider] Post-login actions completed');
     } catch (e) {
       debugPrint('Error in postLoginActions: $e');
     }

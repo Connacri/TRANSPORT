@@ -30,6 +30,7 @@ import 'presentation/screens/public/transporter_detail_screen.dart';
 import 'presentation/screens/shared/notifications_and_history.dart' hide HistoryScreen;
 import 'presentation/screens/shared/onboarding_screen.dart';
 import 'presentation/screens/shared/profile_screen.dart';
+import 'presentation/screens/shared/splash_screen.dart';
 import 'presentation/screens/supervisor/supervisor_home_screen.dart';
 import 'presentation/screens/transporter/premium_and_supervisor_screens.dart';
 import 'presentation/screens/transporter/transporter_home_screen.dart';
@@ -38,40 +39,25 @@ import 'presentation/screens/transporter/transporter_setup_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Initialisation critique (minimale)
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
-    DeviceOrientation.landscapeLeft,
-    DeviceOrientation.landscapeRight,
   ]);
 
   await Supabase.initialize(
     url: AppConstants.supabaseUrl,
     anonKey: AppConstants.supabaseAnonKey,
-    realtimeClientOptions: const RealtimeClientOptions(
-      logLevel: RealtimeLogLevel.info,
-    ),
   );
 
   await FirebaseService.instance.init();
 
-  // FIX #4 : TrackingService peut throw si les permissions sont absentes
-  // sur Android 11+ au premier lancement → ne pas laisser crasher main().
-  try {
-    await TrackingService.instance.initialize();
-  } catch (e) {
-    debugPrint('[TrackingService] init skipped: $e');
-  }
-
   runApp(const TransportHubApp());
 }
 
-// ─────────────────────────────────────────────────────────────────
-// ROOT APP
-// ─────────────────────────────────────────────────────────────────
 class TransportHubApp extends StatefulWidget {
   const TransportHubApp({super.key});
 
@@ -89,18 +75,23 @@ class _TransportHubAppState extends State<TransportHubApp> {
     _authProvider = AuthProvider();
     _router = _buildRouter(_authProvider);
 
-    // FIX #1 : init() doit être appelé APRÈS le premier frame.
-    //
-    // Firebase.authStateChanges émet la valeur courante de manière
-    // synchrone dès que le listener est attaché (dans init()).
-    // Si init() est appelé ici directement, notifyListeners() est
-    // déclenché AVANT que le widget tree soit monté → GoRouter
-    // essaie de naviguer sur un contexte inexistant → crash répété.
-    //
-    // addPostFrameCallback garantit que le widget tree est prêt.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _authProvider.init();
-    });
+    // Initialisation asynchrone hors du flux critique
+    _initApp();
+  }
+
+  Future<void> _initApp() async {
+    // 1. Initialisation Auth immédiate (CRITIQUE pour sortir du Splash)
+    _authProvider.init();
+
+    // 2. Laisser le temps au moteur Flutter de se stabiliser
+    await Future.delayed(const Duration(milliseconds: 200));
+    
+    // 3. Initialisation des services secondaires (NON-BLOQUANT)
+    try {
+      await TrackingService.instance.initialize();
+    } catch (e) {
+      debugPrint('[TrackingService] init skipped: $e');
+    }
   }
 
   @override
@@ -122,7 +113,6 @@ class _TransportHubAppState extends State<TransportHubApp> {
         ChangeNotifierProvider(create: (_) => SupervisorProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
-      // Seul ThemeProvider rebuild MaterialApp → router jamais recréé.
       child: Consumer<ThemeProvider>(
         builder: (context, themeProv, _) {
           return MaterialApp.router(
@@ -141,24 +131,29 @@ class _TransportHubAppState extends State<TransportHubApp> {
   GoRouter _buildRouter(AuthProvider auth) {
     return GoRouter(
       refreshListenable: auth,
-      initialLocation: '/',
+      initialLocation: '/splash',
       redirect: (context, state) {
         final status = auth.status;
         final path   = state.matchedLocation;
 
+        // Si on est au splash, on attend la fin du chargement initial
         if (status == AuthStatus.initial || status == AuthStatus.loading) {
-          return '/';
+          return null; 
         }
 
         final isAuth = status == AuthStatus.authenticated && auth.profile != null;
-        final authPaths = ['/login', '/register', '/forgot-password', '/onboarding', '/'];
+        final authPaths = ['/login', '/register', '/forgot-password', '/onboarding', '/splash'];
         final isAuthPath = authPaths.any((p) => path == p);
 
+        // CAS : Erreur ou Non authentifié
         if (!isAuth) {
-          if (!isAuthPath) return '/onboarding';
-          return null;
+          // Si on est déjà sur une page d'auth, on y reste
+          if (isAuthPath && path != '/splash') return null;
+          // Sinon, redirection vers onboarding
+          return '/onboarding';
         }
 
+        // CAS : Authentifié mais sur une page d'auth -> redirection vers home
         if (isAuthPath) {
           return _homeByRole(auth.role);
         }
@@ -167,13 +162,10 @@ class _TransportHubAppState extends State<TransportHubApp> {
       },
       routes: [
         GoRoute(
-          path: '/',
-          builder: (_, __) => const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(color: Color(0xFFFF6B35)),
-            ),
-          ),
+          path: '/splash',
+          builder: (_, __) => const SplashScreen(),
         ),
+        // ... (reste des routes inchangé)
         // ─── AUTH ────────────────────────────────────────────────
         GoRoute(path: '/onboarding',      builder: (_, __) => const OnboardingScreen()),
         GoRoute(path: '/login',           builder: (_, __) => const LoginScreen()),

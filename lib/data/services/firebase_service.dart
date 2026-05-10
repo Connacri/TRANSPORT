@@ -117,8 +117,10 @@ class FirebaseService {
 
   Future<String?> getFcmToken() async {
     try {
-      return await _messaging.getToken();
-    } catch (_) {
+      // Ajout d'un timeout pour éviter de bloquer l'auth si FCM est lent ou indisponible
+      return await _messaging.getToken().timeout(const Duration(seconds: 5));
+    } catch (e) {
+      debugPrint('[FirebaseService] Failed to get FCM token: $e');
       return null;
     }
   }
