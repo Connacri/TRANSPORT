@@ -58,9 +58,9 @@ void main() async {
     );
     debugPrint('[Init] Supabase OK');
 
-    debugPrint('[Init] FirebaseService (FCM)...');
-    await FirebaseService.instance.init();
-    debugPrint('[Init] FirebaseService OK');
+    debugPrint('[Init] AppFirebaseService (FCM)...');
+    await AppFirebaseService.instance.init();
+    debugPrint('[Init] AppFirebaseService OK');
 
     runApp(const TransportHubApp());
     debugPrint('[Init] runApp() called');

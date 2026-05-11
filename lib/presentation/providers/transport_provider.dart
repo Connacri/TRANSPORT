@@ -113,7 +113,7 @@ class TransportProvider extends ChangeNotifier {
       _activeRequest = request;
 
       // Notifier le transporteur via FCM
-      await FirebaseService.instance.sendNotificationToUser(
+      await AppFirebaseService.instance.sendNotificationToUser(
         recipientProfileId: transporterId,
         title: '🚛 Nouvelle demande de transport',
         body: 'De: $pickupAddress → $dropoffAddress\nPrix: ${total.toStringAsFixed(0)} $currency',
@@ -146,7 +146,7 @@ class TransportProvider extends ChangeNotifier {
       );
 
       // Notifier le client
-      await FirebaseService.instance.sendNotificationToUser(
+      await AppFirebaseService.instance.sendNotificationToUser(
         recipientProfileId: clientId,
         title: '✅ Demande acceptée !',
         body: 'Votre transporteur est en route. Suivez-le en temps réel.',
@@ -195,7 +195,7 @@ class TransportProvider extends ChangeNotifier {
       _subscribeToTracking(requestId, transporterId);
 
       // Notifier client
-      await FirebaseService.instance.sendNotificationToUser(
+      await AppFirebaseService.instance.sendNotificationToUser(
         recipientProfileId: clientId,
         title: '🚚 Transport démarré !',
         body: 'Le transporteur est en route vers vous.',
@@ -227,7 +227,7 @@ class TransportProvider extends ChangeNotifier {
       _unsubscribeAll();
 
       // Notifier client
-      await FirebaseService.instance.sendNotificationToUser(
+      await AppFirebaseService.instance.sendNotificationToUser(
         recipientProfileId: clientId,
         title: '🎉 Transport terminé !',
         body: 'Merci d\'utiliser TransportHub. Notez votre transporteur !',
@@ -260,7 +260,7 @@ class TransportProvider extends ChangeNotifier {
       _bgLocationSub?.cancel();
       _unsubscribeAll();
 
-      await FirebaseService.instance.sendNotificationToUser(
+      await AppFirebaseService.instance.sendNotificationToUser(
         recipientProfileId: otherPartyProfileId,
         title: '❌ Transport annulé',
         body: reason,

@@ -33,13 +33,13 @@ class AuthProvider extends ChangeNotifier {
     debugPrint('[AuthProvider] Initializing...');
     
     // 1. Écouter les changements futurs
-    _authSub = FirebaseService.instance.authStateChanges.listen((user) {
+    _authSub = AppFirebaseService.instance.authStateChanges.listen((user) {
       debugPrint('[AuthProvider] Auth state changed (Stream): ${user?.email ?? "null"}');
       _onAuthStateChanged(user);
     });
 
     // 2. Vérification immédiate (Fix pour les flux qui restent muets au départ)
-    final currentUser = FirebaseService.instance.currentUser;
+    final currentUser = AppFirebaseService.instance.currentUser;
     if (currentUser != null) {
       debugPrint('[AuthProvider] Immediate user found: ${currentUser.email}');
       _onAuthStateChanged(currentUser);
@@ -94,7 +94,7 @@ class AuthProvider extends ChangeNotifier {
       debugPrint('[AuthProvider] Performing post-login actions...');
       await SupabaseService.instance.updateLastSeen(profile.id);
 
-      final token = await FirebaseService.instance.getFcmToken();
+      final token = await AppFirebaseService.instance.getFcmToken();
       if (token != null) {
         debugPrint('[AuthProvider] FCM Token obtained');
         final platform = defaultTargetPlatform == TargetPlatform.android
@@ -129,13 +129,13 @@ class AuthProvider extends ChangeNotifier {
   }) async {
     _setLoading();
     try {
-      final credential = await FirebaseService.instance.signUpWithEmail(
+      final credential = await AppFirebaseService.instance.signUpWithEmail(
         email: email,
         password: password,
       );
 
       try {
-        await FirebaseService.instance.updateDisplayName(fullName);
+        await AppFirebaseService.instance.updateDisplayName(fullName);
       } catch (e) {
         debugPrint('Failed to update display name: $e');
       }
@@ -157,7 +157,7 @@ class AuthProvider extends ChangeNotifier {
       }
 
       try {
-        await FirebaseService.instance.sendEmailVerification();
+        await AppFirebaseService.instance.sendEmailVerification();
       } catch (e) {
         debugPrint('Failed to send verification email: $e');
       }
@@ -183,7 +183,7 @@ class AuthProvider extends ChangeNotifier {
   }) async {
     _setLoading();
     try {
-      await FirebaseService.instance.signInWithEmail(
+      await AppFirebaseService.instance.signInWithEmail(
         email: email,
         password: password,
       );
@@ -207,7 +207,7 @@ class AuthProvider extends ChangeNotifier {
     _setLoading();
     try {
       final fb.UserCredential? userCredential =
-          await FirebaseService.instance.signInWithGoogle();
+          await AppFirebaseService.instance.signInWithGoogle();
 
       if (userCredential == null) {
         _status = _profile != null ? AuthStatus.authenticated : AuthStatus.unauthenticated;
@@ -246,7 +246,7 @@ class AuthProvider extends ChangeNotifier {
   Future<bool> sendPasswordReset(String email) async {
     _setLoading();
     try {
-      await FirebaseService.instance.sendPasswordResetEmail(email);
+      await AppFirebaseService.instance.sendPasswordResetEmail(email);
       _status = AuthStatus.unauthenticated;
       notifyListeners();
       return true;
@@ -308,7 +308,7 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> signOut() async {
     try {
-      await FirebaseService.instance.signOut();
+      await AppFirebaseService.instance.signOut();
       final prefs = await SharedPreferences.getInstance();
       await prefs.clear();
       _profile = null;

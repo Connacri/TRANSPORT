@@ -1,13 +1,10 @@
 // lib/data/services/firebase_service.dart
-import 'package:firebase_auth/firebase_auth.dart' as fb;
-import 'package:flutter/material.dart' show Color;
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart' show Color, debugPrint;
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'supabase_service.dart';
-import 'package:flutter/foundation.dart';
-
 
 // ─── Gestionnaire background FCM (top-level obligatoire) ─────────
 @pragma('vm:entry-point')
@@ -50,16 +47,12 @@ Future<void> _showLocalNotification(RemoteMessage message) async {
   );
 }
 
-class FirebaseService {
-  FirebaseService._();
-  static final FirebaseService instance = FirebaseService._();
+class AppFirebaseService {
+  AppFirebaseService._();
+  static final AppFirebaseService instance = AppFirebaseService._();
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
-
-  // ─── PAS de GoogleSignIn comme champ de classe ────────────────
-  // Instanciation locale dans signInWithGoogle() — pattern check31
-  // qui évite le bug "popup ne revient pas"
 
   User? get currentUser => _auth.currentUser;
   Stream<User?> get authStateChanges => _auth.authStateChanges();
@@ -67,6 +60,15 @@ class FirebaseService {
   // ─── INITIALISATION ──────────────────────────────────────────
 
   Future<void> init() async {
+    // Initialisation de Google Sign-In (v7.x pattern)
+    try {
+      await GoogleSignIn.instance.initialize(
+        serverClientId: '263476182469-rb90c3c0braunpql4p079sfn93muugm9.apps.googleusercontent.com',
+      );
+    } catch (e) {
+      debugPrint('[AppFirebaseService] GoogleSignIn init error: $e');
+    }
+    
     await _initLocalNotifications();
     await _initFCM();
   }
@@ -103,9 +105,9 @@ class FirebaseService {
       sound: true,
       provisional: false,
     ).then((settings) {
-      debugPrint('[FirebaseService] FCM Permission status: ${settings.authorizationStatus}');
+      debugPrint('[AppFirebaseService] FCM Permission status: ${settings.authorizationStatus}');
     }).catchError((e) {
-      debugPrint('[FirebaseService] FCM Permission error: $e');
+      debugPrint('[AppFirebaseService] FCM Permission error: $e');
     });
 
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
@@ -126,7 +128,7 @@ class FirebaseService {
       // Ajout d'un timeout pour éviter de bloquer l'auth si FCM est lent ou indisponible
       return await _messaging.getToken().timeout(const Duration(seconds: 5));
     } catch (e) {
-      debugPrint('[FirebaseService] Failed to get FCM token: $e');
+      debugPrint('[AppFirebaseService] Failed to get FCM token: $e');
       return null;
     }
   }
@@ -165,41 +167,34 @@ class FirebaseService {
     await _auth.currentUser?.sendEmailVerification();
   }
 
-  // ─── GOOGLE SIGN IN — pattern check31 ────────────────────────
-  // Instanciation locale de GoogleSignIn() dans la méthode.
-  // Retourne null si l'utilisateur annule → géré proprement par AuthProvider.
+  // ─── GOOGLE SIGN IN — Adaptation google_sign_in 7.x ──────────
 
   Future<UserCredential?> signInWithGoogle() async {
     try {
-      debugPrint('[FirebaseService] Starting Google Sign-In...');
-      final GoogleSignIn googleSignIn = GoogleSignIn(
-        serverClientId: '263476182469-rb90c3c0braunpql4p079sfn93muugm9.apps.googleusercontent.com',
-      );
+      debugPrint('[AppFirebaseService] Starting Google Sign-In...');
       
-      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+      // Utilisation du singleton GoogleSignIn.instance et authenticate()
+      final googleUser = await GoogleSignIn.instance.authenticate();
 
-      if (googleUser == null) {
-        debugPrint('[FirebaseService] Google Sign-In cancelled by user');
-        return null;
-      }
+      debugPrint('[AppFirebaseService] Google User obtained: ${googleUser.email}');
+      
+      // googleUser.authentication n'est plus un Future dans la v7.x
+      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
 
-      debugPrint('[FirebaseService] Google User obtained: ${googleUser.email}');
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-
-      debugPrint('[FirebaseService] Obtaining Firebase credential...');
+      debugPrint('[AppFirebaseService] Obtaining Firebase credential...');
       final AuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
+        // accessToken n'est plus disponible par défaut dans GoogleSignInAuthentication v7.x
       );
 
       final userCredential = await _auth.signInWithCredential(credential);
-      debugPrint('[FirebaseService] Firebase Sign-In successful: ${userCredential.user?.uid}');
+      debugPrint('[AppFirebaseService] Firebase Sign-In successful: ${userCredential.user?.uid}');
       return userCredential;
-    } on fb.FirebaseAuthException catch (e) {
-      debugPrint('[FirebaseService] FirebaseAuthException: ${e.code} - ${e.message}');
+    } on FirebaseAuthException catch (e) {
+      debugPrint('[AppFirebaseService] FirebaseAuthException: ${e.code} - ${e.message}');
       rethrow;
     } catch (e, s) {
-      debugPrint('[FirebaseService] Unexpected Google Sign-In error: $e');
+      debugPrint('[AppFirebaseService] Unexpected Google Sign-In error: $e');
       debugPrint('$s');
       rethrow;
     }
@@ -208,15 +203,15 @@ class FirebaseService {
   // ─── SIGN OUT ─────────────────────────────────────────────────
 
   Future<void> signOut() async {
-  await Future.wait([
-    _auth.signOut(),
-    GoogleSignIn().signOut().catchError((_) {
-      return null;
-    }),
-  ]);
+    await Future.wait([
+      _auth.signOut(),
+      GoogleSignIn.instance.signOut().catchError((_) {
+        return null;
+      }),
+    ]);
 
-  await _messaging.deleteToken();
-}
+    await _messaging.deleteToken();
+  }
 
   // ─── UPDATE PROFILE ───────────────────────────────────────────
 
