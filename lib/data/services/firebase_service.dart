@@ -170,11 +170,14 @@ class FirebaseService {
 
   Future<UserCredential?> signInWithGoogle() async {
     try {
-      // Instanciation locale — clé du fix check31
-      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+      // Pour la release, il est souvent nécessaire de spécifier le serverClientId (Web Client ID dans Firebase)
+      final GoogleSignIn googleSignIn = GoogleSignIn(
+        serverClientId: '263476182469-rb90c3c0braunpql4p079sfn93muugm9.apps.googleusercontent.com',
+      );
+      
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
 
       if (googleUser == null) {
-        // Utilisateur a annulé la popup → on retourne null proprement
         return null;
       }
 
