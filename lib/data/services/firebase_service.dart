@@ -170,7 +170,7 @@ class FirebaseService {
 
   Future<UserCredential?> signInWithGoogle() async {
     try {
-      // Pour la release, il est souvent nécessaire de spécifier le serverClientId (Web Client ID dans Firebase)
+      debugPrint('[FirebaseService] Starting Google Sign-In...');
       final GoogleSignIn googleSignIn = GoogleSignIn(
         serverClientId: '263476182469-rb90c3c0braunpql4p079sfn93muugm9.apps.googleusercontent.com',
       );
@@ -178,20 +178,28 @@ class FirebaseService {
       final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
 
       if (googleUser == null) {
+        debugPrint('[FirebaseService] Google Sign-In cancelled by user');
         return null;
       }
 
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
+      debugPrint('[FirebaseService] Google User obtained: ${googleUser.email}');
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
 
+      debugPrint('[FirebaseService] Obtaining Firebase credential...');
       final AuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
-      return await _auth.signInWithCredential(credential);
+      final userCredential = await _auth.signInWithCredential(credential);
+      debugPrint('[FirebaseService] Firebase Sign-In successful: ${userCredential.user?.uid}');
+      return userCredential;
+    } on fb.FirebaseAuthException catch (e) {
+      debugPrint('[FirebaseService] FirebaseAuthException: ${e.code} - ${e.message}');
+      rethrow;
     } catch (e, s) {
-      debugPrint('[FirebaseService] Google Sign-In error: $e\n$s');
+      debugPrint('[FirebaseService] Unexpected Google Sign-In error: $e');
+      debugPrint('$s');
       rethrow;
     }
   }

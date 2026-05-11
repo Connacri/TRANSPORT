@@ -1,5 +1,6 @@
 // lib/presentation/screens/auth/login_screen.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
@@ -31,6 +32,89 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     _anim = AnimationController(vsync: this, duration: const Duration(milliseconds: 800));
     _fadeAnim = CurvedAnimation(parent: _anim, curve: Curves.easeOut);
     _anim.forward();
+
+    // Ecouteur pour les erreurs détaillées
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AuthProvider>().addListener(_onAuthError);
+    });
+  }
+
+  void _onAuthError() {
+    if (!mounted) return;
+    final auth = context.read<AuthProvider>();
+    if (auth.status == AuthStatus.error && auth.errorMessage != null) {
+      _showErrorDialog(auth.errorMessage!, auth.rawError);
+    }
+  }
+
+  void _showErrorDialog(String message, String? rawError) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.bug_report_outlined, color: Colors.red),
+            SizedBox(width: 8),
+            Text('Diagnostic Erreur'),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(message, style: const TextStyle(fontWeight: FontWeight.bold)),
+              if (rawError != null) ...[
+                const SizedBox(height: 16),
+                const Text('Détails techniques (appui long pour copier) :', 
+                  style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                GestureDetector(
+                  onLongPress: () {
+                    Clipboard.setData(ClipboardData(text: rawError));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Détails techniques copiés !')),
+                    );
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[200],
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: Colors.grey[300]!),
+                    ),
+                    child: Text(
+                      rawError,
+                      style: const TextStyle(fontFamily: 'monospace', fontSize: 10),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Clipboard.setData(ClipboardData(text: "MESSAGE: $message\n\nDETAILS: $rawError"));
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Tout a été copié !')),
+              );
+            },
+            child: const Text('TOUT COPIER'),
+          ),
+          TextButton(
+            onPressed: () {
+              context.read<AuthProvider>().clearError();
+              Navigator.pop(context);
+            },
+            child: const Text('FERMER'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override

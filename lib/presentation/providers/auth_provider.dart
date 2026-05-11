@@ -16,11 +16,13 @@ class AuthProvider extends ChangeNotifier {
   AuthStatus    _status       = AuthStatus.initial;
   ProfileModel? _profile;
   String?       _errorMessage;
+  String?       _rawError;
   StreamSubscription? _authSub;
 
   AuthStatus    get status       => _status;
   ProfileModel? get profile      => _profile;
   String?       get errorMessage => _errorMessage;
+  String?       get rawError     => _rawError;
   bool          get isLoading    => _status == AuthStatus.loading;
   bool          get isAuth       => _status == AuthStatus.authenticated && _profile != null;
   UserRole      get role         => _profile?.role ?? UserRole.public;
@@ -78,10 +80,9 @@ class AuthProvider extends ChangeNotifier {
         await _postLoginActions(_profile!);
         _status = AuthStatus.authenticated;
       }
-    } catch (e) {
+    } catch (e, s) {
       debugPrint('[AuthProvider] Error during auth state change: $e');
-      _status       = AuthStatus.error;
-      _errorMessage = _mapError(e);
+      _setError(_mapError(e), raw: '$e\n$s');
     }
 
     debugPrint('[AuthProvider] Final status: $_status');
@@ -188,10 +189,10 @@ class AuthProvider extends ChangeNotifier {
       );
       return true;
     } on FirebaseAuthException catch (e) {
-      _setError(_mapFirebaseError(e));
+      _setError(_mapFirebaseError(e), raw: e.toString());
       return false;
-    } catch (e) {
-      _setError(_mapError(e));
+    } catch (e, s) {
+      _setError(_mapError(e), raw: '$e\n$s');
       return false;
     }
   }
@@ -236,7 +237,7 @@ class AuthProvider extends ChangeNotifier {
     } catch (e, s) {
       debugPrint("Erreur lors de la connexion avec Google : ${e.toString()}");
       debugPrint("Stacktrace : $s");
-      _setError(_mapError(e));
+      _setError(_mapError(e), raw: '$e\n$s');
       return null;
     }
   }
@@ -356,17 +357,20 @@ class AuthProvider extends ChangeNotifier {
   void _setLoading() {
     _status       = AuthStatus.loading;
     _errorMessage = null;
+    _rawError     = null;
     notifyListeners();
   }
 
-  void _setError(String msg) {
+  void _setError(String msg, {dynamic raw}) {
     _status       = AuthStatus.error;
     _errorMessage = msg;
+    _rawError     = raw?.toString();
     notifyListeners();
   }
 
   void clearError() {
     _errorMessage = null;
+    _rawError     = null;
     notifyListeners();
   }
 
