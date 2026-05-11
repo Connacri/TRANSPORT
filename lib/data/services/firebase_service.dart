@@ -1,4 +1,5 @@
 // lib/data/services/firebase_service.dart
+import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:flutter/material.dart' show Color;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
