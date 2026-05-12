@@ -203,7 +203,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           ),
                         ),
                         const SizedBox(height: 24),
-                        Text('TransportHub', style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -0.5)),
+                        Text('Cargoza', style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -0.5)),
                         const SizedBox(height: 8),
                         Text('Bienvenue sur votre plateforme de transport', textAlign: TextAlign.center, style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.textSecondaryLight)),
                       ],

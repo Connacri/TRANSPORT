@@ -104,7 +104,7 @@ class TrackingService {
         autoStart: false,
         isForegroundMode: true,
         notificationChannelId: 'tracking_channel',
-        initialNotificationTitle: 'TransportHub — Tracking actif',
+        initialNotificationTitle: 'Cargoza — Tracking actif',
         initialNotificationContent: 'Votre position est partagée en temps réel',
         foregroundServiceNotificationId: 888,
       ),

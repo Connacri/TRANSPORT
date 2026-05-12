@@ -103,7 +103,7 @@ class _PublicHomeScreenState extends State<PublicHomeScreen>
                 const Icon(Icons.local_shipping_rounded,
                     color: AppColors.primary, size: 28),
                 const SizedBox(width: 8),
-                const Text('TransportHub',
+                const Text('Cargoza',
                     style: TextStyle(fontWeight: FontWeight.w700)),
                 const Spacer(),
                 // Notifications

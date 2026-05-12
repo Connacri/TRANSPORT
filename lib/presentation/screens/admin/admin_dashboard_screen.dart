@@ -109,7 +109,7 @@ class _WelcomeHeader extends StatelessWidget {
                 )),
                 const SizedBox(height: 4),
                 Text(
-                  'Panneau de contrôle TransportHub',
+                  'Panneau de contrôle Cargoza',
                   style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 13),
                 ),
               ],

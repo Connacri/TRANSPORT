@@ -230,7 +230,7 @@ class TransportProvider extends ChangeNotifier {
       await AppFirebaseService.instance.sendNotificationToUser(
         recipientProfileId: clientId,
         title: '🎉 Transport terminé !',
-        body: 'Merci d\'utiliser TransportHub. Notez votre transporteur !',
+        body: 'Merci d\'utiliser Cargoza. Notez votre transporteur !',
         data: {'type': 'transport_completed', 'request_id': requestId},
       );
 

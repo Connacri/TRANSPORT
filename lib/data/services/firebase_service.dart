@@ -17,9 +17,9 @@ final FlutterLocalNotificationsPlugin _localNotifications =
 
 Future<void> _showLocalNotification(RemoteMessage message) async {
   const channel = AndroidNotificationChannel(
-    'transport_hub_channel',
-    'TransportHub Notifications',
-    description: "Notifications de l'application TransportHub",
+    'cargoza_channel',
+    'Cargoza Notifications',
+    description: "Notifications de l'application Cargoza",
     importance: Importance.max,
     playSound: true,
     enableVibration: true,
@@ -27,7 +27,7 @@ Future<void> _showLocalNotification(RemoteMessage message) async {
 
   await _localNotifications.show(
     message.hashCode,
-    message.notification?.title ?? 'TransportHub',
+    message.notification?.title ?? 'Cargoza',
     message.notification?.body ?? '',
     NotificationDetails(
       android: AndroidNotificationDetails(
@@ -86,9 +86,9 @@ class AppFirebaseService {
     );
 
     const channel = AndroidNotificationChannel(
-      'transport_hub_channel',
-      'TransportHub Notifications',
-      description: 'Notifications de TransportHub',
+      'cargoza_channel',
+      'Cargoza Notifications',
+      description: 'Notifications de Cargoza',
       importance: Importance.max,
     );
     await _localNotifications

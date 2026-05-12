@@ -360,7 +360,7 @@ class _SupervisorAddTransporterScreenState extends State<SupervisorAddTransporte
           // Formulaire
           const Text('📧 Par email', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
           const SizedBox(height: 6),
-          const Text('Le transporteur doit déjà avoir un compte TransportHub.',
+          const Text('Le transporteur doit déjà avoir un compte Cargoza.',
             style: TextStyle(color: AppColors.textSecondaryLight, fontSize: 13)),
           const SizedBox(height: 14),
           AppTextField(
