@@ -50,8 +50,9 @@ android {
                 keyPassword = keystoreProperties.getProperty("keyPassword")
                 val storeFileProp = keystoreProperties.getProperty("storeFile")
                 if (storeFileProp != null) {
-                    // Pour que le chemin soit relatif à la racine du projet (là où se trouve transport.jks)
-                    storeFile = rootProject.file("..").resolve(storeFileProp)
+                    // rootProject est le dossier 'android'. 
+                    // Si storeFile est '../transport.jks', cela pointera correctement vers la racine du projet.
+                    storeFile = rootProject.file(storeFileProp)
                 }
                 storePassword = keystoreProperties.getProperty("storePassword")
             }
