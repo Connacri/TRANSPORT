@@ -1,7 +1,7 @@
-# <p align="center">🛸 **TransportHub Neural Systems** 🛸</p>
+# <p align="center">🛸 **Cargoza Neural Systems** 🛸</p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Connacri/TRANSPORT/master/assets/icons/icon.png" width="160" alt="TransportHub Logo">
+  <img src="https://raw.githubusercontent.com/Connacri/TRANSPORT/master/assets/icons/icon.png" width="160" alt="Cargoza Logo">
 </p>
 
 <p align="center">
@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/github/workflow/status/Connacri/TRANSPORT/Build%20&%20Release%20TransportHub?style=flat-square&label=Neural%20Build" alt="Build Status">
+  <img src="https://img.shields.io/github/workflow/status/Connacri/TRANSPORT/Build%20&%20Release%20Cargoza?style=flat-square&label=Neural%20Build" alt="Build Status">
   <img src="https://img.shields.io/github/license/Connacri/TRANSPORT?style=flat-square&color=yellow" alt="License">
   <img src="https://img.shields.io/github/v/release/Connacri/TRANSPORT?style=flat-square&color=blue" alt="Version">
 </p>
@@ -29,7 +29,7 @@
 ## 🇬🇧 English Neural Deck
 
 ### 🌌 **Autonomous Logistics Ecosystem**
-TransportHub isn't just an app; it's a multi-dimensional logistics infrastructure. Built for the era of hyper-connectivity, it synchronizes human movement and cargo flow through a decentralized-first approach.
+Cargoza isn't just an app; it's a multi-dimensional logistics infrastructure. Built for the era of hyper-connectivity, it synchronizes human movement and cargo flow through a decentralized-first approach.
 
 #### ⚡ **Cyber-Core Modules**
 - 🛰️ **Quantum Positioning**: Asynchronous background GPS polling with battery-optimized heuristics.
@@ -54,7 +54,7 @@ TransportHub isn't just an app; it's a multi-dimensional logistics infrastructur
 ## 🇫🇷 Pont de Commande Français
 
 ### 🌌 **Écosystème Logistique Autonome**
-TransportHub n'est pas qu'une simple application ; c'est une infrastructure logistique multidimensionnelle. Conçue pour l'ère de l'hyper-connectivité, elle synchronise les mouvements humains et le flux de marchandises via une approche décentralisée.
+Cargoza n'est pas qu'une simple application ; c'est une infrastructure logistique multidimensionnelle. Conçue pour l'ère de l'hyper-connectivité, elle synchronise les mouvements humains et le flux de marchandises via une approche décentralisée.
 
 #### ⚡ **Modules Cyber-Noyau**
 - 🛰️ **Positionnement Quantique** : Analyse GPS asynchrone en arrière-plan avec heuristiques d'optimisation de batterie.
@@ -79,7 +79,7 @@ TransportHub n'est pas qu'une simple application ; c'est une infrastructure logi
 ## 🇪🇸 Cubierta Neuronal Española
 
 ### 🌌 **Ecosistema Logístico Autónomo**
-TransportHub no es solo una aplicación; es una infraestructura logística multidimensional. Construida para la era de la hiperconectividad, sincroniza el movimiento humano y el flujo de carga a través de un enfoque descentralizado.
+Cargoza no es solo una aplicación; es una infraestructura logística multidimensional. Construida para la era de la hiperconectividad, sincroniza el movimiento humano y el flujo de carga a través de un enfoque descentralizado.
 
 #### ⚡ **Módulos del Ciber-Núcleo**
 - 🛰️ **Posicionamiento Cuántico**: Sondeo GPS asíncrono en segundo plano con heurísticas de optimización de batería.
@@ -104,7 +104,7 @@ TransportHub no es solo una aplicación; es una infraestructura logística multi
 ## 🇵🇹 Convés Neural Português
 
 ### 🌌 **Ecossistema Logístico Autónomo**
-O TransportHub não é apenas uma aplicação; é uma infraestrutura logística multidimensional. Criado para a era da hiper-conectividade, sincroniza o movimento humano e o fluxo de carga através de uma abordagem descentralizada.
+Cargoza não é apenas uma aplicação; é uma infraestrutura logística multidimensional. Criado para a era da hiper-conectividade, sincroniza o movimento humano e o fluxo de carga através de uma abordagem descentralizada.
 
 #### ⚡ **Módulos Cyber-Core**
 - 🛰️ **Posicionamento Quântico**: Polling GPS assíncrono em segundo plano com heurísticas de otimização de bateria.
@@ -151,5 +151,5 @@ graph LR
 
 <p align="center">
   <b>Initiated by Ramzi (Connacri) - Neural Architect</b><br>
-  <sub>© 2026 TransportHub Neural Systems. Licensed under MIT Protocol.</sub>
+  <sub>© 2026 Cargoza Neural Systems. Licensed under MIT Protocol.</sub>
 </p>

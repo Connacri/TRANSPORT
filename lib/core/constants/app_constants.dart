@@ -4,7 +4,7 @@ class AppConstants {
   AppConstants._();
 
   // ─── App Info ────────────────────────────────────────────────
-  static const String appName       = 'TransportHub';
+  static const String appName       = 'Cargoza';
   static const String appVersion    = '1.0.0';
   static const String appTagline    = 'Transport à portée de main';
 

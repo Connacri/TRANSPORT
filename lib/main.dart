@@ -62,24 +62,24 @@ void main() async {
     await AppFirebaseService.instance.init();
     debugPrint('[Init] AppFirebaseService OK');
 
-    runApp(const TransportHubApp());
+    runApp(const CargozaApp());
     debugPrint('[Init] runApp() called');
   } catch (e, s) {
     debugPrint('!!! CRITICAL INIT ERROR: $e');
     debugPrint('$s');
     // On essaie quand même de lancer l'app pour ne pas rester sur un écran noir
-    runApp(const TransportHubApp());
+    runApp(const CargozaApp());
   }
 }
 
-class TransportHubApp extends StatefulWidget {
-  const TransportHubApp({super.key});
+class CargozaApp extends StatefulWidget {
+  const CargozaApp({super.key});
 
   @override
-  State<TransportHubApp> createState() => _TransportHubAppState();
+  State<CargozaApp> createState() => _CargozaAppState();
 }
 
-class _TransportHubAppState extends State<TransportHubApp> {
+class _CargozaAppState extends State<CargozaApp> {
   late final AuthProvider _authProvider;
   late final GoRouter _router;
 

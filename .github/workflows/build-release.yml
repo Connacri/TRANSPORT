@@ -1,4 +1,4 @@
-name: Build & Release TransportHub
+name: Build & Release Cargoza
 
 on:
   push:
@@ -93,7 +93,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: transport_hub_android
+          name: cargoza_android
           path: build/app/outputs/flutter-apk/app-release.apk
 
   # ═══════════════════════════════════════════
@@ -139,7 +139,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: transport_hub_windows
+          name: cargoza_windows
           path: installer/output/*.exe
 
   # ═══════════════════════════════════════════
@@ -158,30 +158,30 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: transport_hub_android
+          name: cargoza_android
           path: dist/
 
       - uses: actions/download-artifact@v4
         with:
-          name: transport_hub_windows
+          name: cargoza_windows
           path: dist/
 
       - name: Renommer les fichiers
         run: |
-          mv dist/app-release.apk dist/TransportHub_v${{ env.VERSION_FULL }}.apk
-          find dist/ -name "*.exe" -exec mv {} dist/TransportHub_v${{ env.VERSION_FULL }}_Installer.exe \;
+          mv dist/app-release.apk dist/Cargoza_v${{ env.VERSION_FULL }}.apk
+          find dist/ -name "*.exe" -exec mv {} dist/Cargoza_v${{ env.VERSION_FULL }}_Installer.exe \;
 
       - name: Créer la Release GitHub
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.TAG }}
-          name: "TransportHub v${{ env.VERSION_FULL }}"
+          name: "Cargoza v${{ env.VERSION_FULL }}"
           body: |
-            ## 🚀 TransportHub - Release ${{ env.VERSION_FULL }}
+            ## 🚀 Cargoza - Release ${{ env.VERSION_FULL }}
             
             ### 📥 Téléchargement
-            - 🤖 **Android** : [TransportHub_v${{ env.VERSION_FULL }}.apk](${{ github.server_url }}/${{ github.repository }}/releases/download/${{ env.TAG }}/TransportHub_v${{ env.VERSION_FULL }}.apk)
-            - 🪟 **Windows** : [TransportHub_v${{ env.VERSION_FULL }}_Installer.exe](${{ github.server_url }}/${{ github.repository }}/releases/download/${{ env.TAG }}/TransportHub_v${{ env.VERSION_FULL }}_Installer.exe)
+            - 🤖 **Android** : [Cargoza_v${{ env.VERSION_FULL }}.apk](${{ github.server_url }}/${{ github.repository }}/releases/download/${{ env.TAG }}/Cargoza_v${{ env.VERSION_FULL }}.apk)
+            - 🪟 **Windows** : [Cargoza_v${{ env.VERSION_FULL }}_Installer.exe](${{ github.server_url }}/${{ github.repository }}/releases/download/${{ env.TAG }}/Cargoza_v${{ env.VERSION_FULL }}_Installer.exe)
             
             ---
             *Généré automatiquement par GitHub Actions.*
