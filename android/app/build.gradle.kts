@@ -13,7 +13,9 @@ plugins {
 val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.file("key.properties")
 if (keystorePropertiesFile.exists()) {
-    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+    keystorePropertiesFile.inputStream().use { input ->
+        keystoreProperties.load(input)
+    }
 }
 
 android {
@@ -39,29 +41,28 @@ android {
         versionName = flutter.versionName
     }
 
-    // IMPORTANT : signingConfigs AVANT buildTypes
     signingConfigs {
         create("release") {
-            if (keystorePropertiesFile.exists()) {
-                keyAlias = keystoreProperties["keyAlias"] as String
-                keyPassword = keystoreProperties["keyPassword"] as String
-                // Utilise rootProject.file pour que le chemin soit relatif au dossier 'android'
-                storeFile = rootProject.file(keystoreProperties["storeFile"] as String)
-                storePassword = keystoreProperties["storePassword"] as String
+            if (keystoreProperties.isNotEmpty) {
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+                storeFile = rootProject.file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
             }
         }
     }
 
     buildTypes {
-        getByName("release") {
-            signingConfig = if (keystorePropertiesFile.exists()) {
-                signingConfigs.getByName("release")
-            } else {
-                signingConfigs.getByName("debug")
-            }
+        release {
+            // On force l'utilisation de la config de release
+            signingConfig = signingConfigs.getByName("release")
 
             isMinifyEnabled = false
             isShrinkResources = false
+        }
+        debug {
+            // Optionnel: on peut aussi signer le debug avec la clé de release pour faciliter les tests Google Sign-In
+            // signingConfig = signingConfigs.getByName("release")
         }
     }
 }
