@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:transport_hub/data/models/models.dart';
+import 'package:cargoza/data/models/models.dart';
 
 void main() {
   group('ProfileModel Tests', () {
