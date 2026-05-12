@@ -1,106 +1,110 @@
-# 🚛 TransportHub
+# <p align="center">🛸 **TransportHub** 🛸</p>
 
-[![Flutter](https://img.shields.io/badge/Flutter-%2302569B.svg?style=for-the-badge&logo=Flutter&logoColor=white)](https://flutter.dev)
-[![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com)
-[![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Connacri/TRANSPORT/master/assets/icons/icon.png" width="128" alt="TransportHub Logo">
+</p>
 
-**TransportHub** is a comprehensive logistics and transportation management platform. It features real-time tracking, multi-role authentication (Admin, Transporter, Supervisor, Client), and a built-in marketplace.
-
----
-
-## ✨ Features
-
-- 📍 **Real-time Tracking**: Live GPS tracking for transporters with background service support.
-- 🔐 **Multi-role Auth**: Secure authentication via Firebase Auth and Supabase RLS.
-- 🏪 **Marketplace**: Buy and sell transport listings.
-- 📱 **Cross-Platform**: Optimized for Android and Windows Desktop.
-- 🔔 **Notifications**: Real-time push notifications via FCM and local logs.
-- 🎨 **Material 3 Design**: Modern, clean, and responsive UI with Light/Dark mode.
+<p align="center">
+  <img src="https://img.shields.io/badge/FLUTTER-3.24+-02569B?style=for-the-badge&logo=flutter&logoColor=white" alt="Flutter">
+  <img src="https://img.shields.io/badge/SUPABASE-REALTIME-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase">
+  <img src="https://img.shields.io/badge/FIREBASE-AUTH-FFCA28?style=for-the-badge&logo=firebase&logoColor=black" alt="Firebase">
+</p>
 
 ---
 
-## 🏗️ Architecture
-
-```mermaid
-graph TD
-    A[Flutter App] --> B[Core]
-    A --> C[Data]
-    A --> D[Presentation]
-    
-    C --> C1[Supabase Service]
-    C --> C2[Firebase Service]
-    C --> C3[Tracking Service]
-    
-    D --> D1[Providers]
-    D --> D2[Screens]
-    D --> D3[Widgets]
-    
-    subgraph "External Services"
-        C1 -.-> S[(Supabase DB/Storage)]
-        C2 -.-> F[(Firebase Auth/FCM)]
-    end
-```
-
-### Project Structure
-- `lib/core/`: Configuration, theme, and constants.
-- `lib/data/`: Models and infrastructure services.
-- `lib/presentation/`: State management (Providers), UI screens, and reusable widgets.
-- `supabase_schema.sql`: Full database schema including RLS policies.
+## 🌐 Language Select / Sélection de la Langue
+- [🇬🇧 English](#-english)
+- [🇫🇷 Français](#-français)
+- [🇪🇸 Español](#-español)
+- [🇵🇹 Português](#-português)
 
 ---
 
-## 🚀 Getting Started
+## 🇬🇧 English
 
-### 1. Prerequisites
-- **Flutter**: `>= 3.24.0`
-- **Dart**: `>= 3.4.0`
+### 🌌 **The Future of Logistics**
+TransportHub is a next-generation ecosystem designed to revolutionize global transport. It bridges the gap between **Real-time Tracking**, **Marketplace dynamics**, and **Multi-role governance**.
 
-### 2. Installation
-```bash
-git clone <your-repo-url>
-cd transport_hub
-flutter pub get
-```
+#### ⚡ **Futuristic Core Features**
+- 🛰️ **Quantum Tracking**: Real-time GPS synchronization using advanced background services.
+- 🧬 **Multi-Role Neural Network**: Tailored interfaces for Admins, Transporters, Supervisors, and Clients.
+- 📦 **Smart Marketplace**: Integrated logistics exchange with real-time bidding.
+- 🔐 **Biometric-Ready Auth**: Secure Firebase integration with Supabase RLS shielding.
+- 🌗 **Adaptive Interface**: Material 3 UI with hyper-fluid animations (Lottie & Shimmer).
 
-### 3. Firebase Setup
-```bash
-flutterfire configure --platforms=android,windows
-```
-*Enable Email/Password and Google Sign-In in the Firebase Console.*
-
-### 4. Supabase Setup
-1. Create a project at [supabase.com](https://supabase.com).
-2. Run `supabase_schema.sql` in the **SQL Editor**.
-3. Create public buckets: `avatars`, `vehicles`, `documents`, `listings`.
-4. Enable Realtime for `trackings`, `transport_requests`, and `notifications_log`.
-5. Update constants in `lib/core/constants/app_constants.dart`.
+#### 🛠️ **Tech Constellation**
+- **Engine**: Flutter (Dart)
+- **Neural Storage**: Supabase (PostgreSQL + Realtime)
+- **Security Protocols**: Firebase Auth & FCM
+- **Navigation Grid**: OSM + Flutter Map
 
 ---
 
-## 🎨 Design Tokens
+## 🇫🇷 Français
 
-| Token | Value | Preview |
-|-------|-------|---------|
-| **Primary** | `#FF6B35` | 🟠 |
-| **Secondary** | `#1A1A2E` | 🔵 |
-| **Success** | `#4CAF50` | 🟢 |
-| **Warning** | `#FFC107` | 🟡 |
-| **Error** | `#E53935` | 🔴 |
-| **Gold** | `#FFD700` | 🟡 |
+### 🌌 **L'Avenir de la Logistique**
+TransportHub est un écosystème de nouvelle génération conçu pour révolutionner le transport mondial. Il fusionne le **Suivi en Temps Réel**, les **Dynamiques de Marché** et une **Gouvernance Multi-Rôles**.
 
----
+#### ⚡ **Fonctionnalités Futuristes**
+- 🛰️ **Suivi Quantique** : Synchronisation GPS en temps réel via des services d'arrière-plan avancés.
+- 🧬 **Réseau Neuronal Multi-Rôles** : Interfaces adaptées pour Administrateurs, Transporteurs, Superviseurs et Clients.
+- 📦 **Marketplace Intelligent** : Échange logistique intégré avec enchères en temps réel.
+- 🔐 **Authentification Blindée** : Intégration Firebase sécurisée avec protection Supabase RLS.
+- 🌗 **Interface Adaptative** : UI Material 3 avec animations hyper-fluides (Lottie & Shimmer).
 
-## 🛠️ Tech Stack
-
-- **Framework**: [Flutter](https://flutter.dev)
-- **Database/Realtime**: [Supabase](https://supabase.com)
-- **Authentication/Push**: [Firebase](https://firebase.google.com)
-- **Maps**: [OSM + Flutter Map](https://pub.dev/packages/flutter_map)
-- **State Management**: [Provider](https://pub.dev/packages/provider)
-- **Routing**: [GoRouter](https://pub.dev/packages/go_router)
+#### 🛠️ **Constellation Technique**
+- **Moteur** : Flutter (Dart)
+- **Stockage Neuronal** : Supabase (PostgreSQL + Realtime)
+- **Protocoles de Sécurité** : Firebase Auth & FCM
+- **Grille de Navigation** : OSM + Flutter Map
 
 ---
 
-## 📄 License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## 🇪🇸 Español
+
+### 🌌 **El Futuro de la Logística**
+TransportHub es un ecosistema de próxima generación diseñado para revolucionar el transporte global. Une el **Seguimiento en Tiempo Real**, la **Dinámica del Mercado** y la **Gobernanza Multirole**.
+
+#### ⚡ **Características Futuristas**
+- 🛰️ **Seguimiento Cuántico**: Sincronización GPS en tiempo real mediante servicios avanzados en segundo plano.
+- 🧬 **Red Neuronal Multirole**: Interfaces personalizadas para Administradores, Transportistas, Supervisores y Clientes.
+- 📦 **Mercado Inteligente**: Intercambio logístico integrado con pujas en tiempo real.
+- 🔐 **Autenticación Blindada**: Integración segura de Firebase con protección Supabase RLS.
+- 🌗 **Interfaz Adaptativa**: UI Material 3 con animaciones hiperfluidas (Lottie y Shimmer).
+
+#### 🛠️ **Constelación Técnica**
+- **Motor**: Flutter (Dart)
+- **Almacenamiento Neuronal**: Supabase (PostgreSQL + Realtime)
+- **Protocolos de Seguridad**: Firebase Auth & FCM
+- **Red de Navegación**: OSM + Flutter Map
+
+---
+
+## 🇵🇹 Português
+
+### 🌌 **O Futuro da Logística**
+O TransportHub é um ecossistema de próxima geração concebido para revolucionar o transporte global. Une o **Rastreamento em Tempo Real**, a **Dinâmica do Marketplace** e a **Governança Multigrupo**.
+
+#### ⚡ **Recursos Futuristas**
+- 🛰️ **Rastreamento Quântico**: Sincronização GPS em tempo real utilizando serviços avançados de segundo plano.
+- 🧬 **Rede Neural Multigrupo**: Interfaces personalizadas para Administradores, Transportadores, Supervisores e Clientes.
+- 📦 **Marketplace Inteligente**: Intercâmbio logístico integrado com licitações em tempo real.
+- 🔐 **Autenticação Blindada**: Integração segura com Firebase e proteção Supabase RLS.
+- 🌗 **Interface Adaptativa**: UI Material 3 com animações hiper-fluidas (Lottie & Shimmer).
+
+#### 🛠️ **Constelação Técnica**
+- **Motor**: Flutter (Dart)
+- **Armazenamento Neural**: Supabase (PostgreSQL + Realtime)
+- **Protocolos de Segurança**: Firebase Auth & FCM
+- **Grade de Navegação**: OSM + Flutter Map
+
+---
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Connacri/TRANSPORT/master/assets/animations/.gitkeep" width="0" alt="Animated Divider">
+</p>
+
+<p align="center">
+  <b>Built with ❤️ for the future of transportation.</b><br>
+  <sub>© 2026 TransportHub Neural Systems</sub>
+</p>
