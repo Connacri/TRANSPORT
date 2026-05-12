@@ -439,10 +439,7 @@ class TransportRequestModel {
         appCommissionAmount: (j['app_commission_amount'] as num?)?.toDouble(),
         supervisorCommissionAmount: (j['supervisor_commission_amount'] as num?)?.toDouble(),
         transporterNetAmount: (j['transporter_net_amount'] as num?)?.toDouble(),
-        status: RequestStatus.values.firstWhere(
-          (e) => e.name == (j['status'] as String).replaceAll('_', ''),
-          orElse: () => RequestStatus.pending,
-        ),
+        status: _parseStatus(j['status'] as String? ?? 'pending'),
         paymentStatus: PaymentStatus.values.firstWhere(
           (e) => e.name == j['payment_status'],
           orElse: () => PaymentStatus.pending,
@@ -478,6 +475,19 @@ class TransportRequestModel {
       case RequestStatus.completed:  return const Color(0xFF4CAF50);
       case RequestStatus.cancelled:  return const Color(0xFFE53935);
     }
+  }
+
+  // Ajouter la fonction statique :
+  static RequestStatus _parseStatus(String raw) {
+    const map = {
+      'pending':     RequestStatus.pending,
+      'accepted':    RequestStatus.accepted,
+      'in_progress': RequestStatus.inProgress,
+      'inProgress':  RequestStatus.inProgress,
+      'completed':   RequestStatus.completed,
+      'cancelled':   RequestStatus.cancelled,
+    };
+    return map[raw] ?? RequestStatus.pending;
   }
 }
 

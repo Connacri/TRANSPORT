@@ -338,6 +338,11 @@ class TransportProvider extends ChangeNotifier {
       requestId: requestId,
       onData: (request) {
         _activeRequest = request;
+        // Si le transport démarre, on s'abonne au tracking
+        if (request.status == RequestStatus.inProgress &&
+            request.transporterId != null) {
+          _subscribeToTracking(request.id, request.transporterId!);
+        }
         notifyListeners();
       },
     );
@@ -383,5 +388,18 @@ class TransportProvider extends ChangeNotifier {
     _unsubscribeAll();
     _bgLocationSub?.cancel();
     super.dispose();
+  }
+
+  void setActiveRequestDirectly(TransportRequestModel request) {
+    _activeRequest = request;
+    _subscribeToRequest(request.id);
+
+    // Si déjà en cours, lancer l'abonnement tracking
+    if (request.status == RequestStatus.inProgress &&
+        request.transporterId != null) {
+      _subscribeToTracking(request.id, request.transporterId!);
+    }
+
+    notifyListeners();
   }
 }

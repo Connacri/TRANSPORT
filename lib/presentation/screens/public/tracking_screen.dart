@@ -23,20 +23,27 @@ class _TrackingScreenState extends State<TrackingScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _init());
   }
 
+// Remplacer _init() par :
   Future<void> _init() async {
     final transport = context.read<TransportProvider>();
-    // Charger la demande active si pas déjà chargée
-    if (transport.activeRequest?.id != widget.requestId) {
-      try {
-        await SupabaseService.instance.client
-            .from('transport_requests')
-            .select()
-            .eq('id', widget.requestId)
-            .single();
-        // Met à jour activeRequest via le provider
-      } catch (_) {}
+    if (transport.activeRequest?.id == widget.requestId) return;
+
+    try {
+      final data = await SupabaseService.instance.client
+          .from('transport_requests')
+          .select('*, profiles(*)')
+          .eq('id', widget.requestId)
+          .single();
+
+      // ✅ FIX : affecter au provider via subscribeToRequest
+      final request = TransportRequestModel.fromJson(data);
+      transport.setActiveRequestDirectly(request); // voir ci-dessous
+    } catch (e) {
+      debugPrint('[TrackingScreen] Failed to load request: $e');
     }
   }
+
+
 
   @override
   Widget build(BuildContext context) {
