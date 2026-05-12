@@ -87,12 +87,14 @@ flutter_launcher_icons:
   ios: true
   image_path: "assets/icons/icon.png"
   min_sdk_android: 21
+  adaptive_icon_background: "#1A1A2E"
+  adaptive_icon_foreground: "assets/icons/icon.png"
 
   web:
     generate: true
     image_path: "assets/icons/icon.png"
-    background_color: "#ffffff"
-    theme_color: "#ffffff"
+    background_color: "#1A1A2E"
+    theme_color: "#FF6B35"
 
   windows:
     generate: true
@@ -104,12 +106,16 @@ flutter_launcher_icons:
     image_path: "assets/icons/icon.png"
 
 flutter_native_splash:
-  color: "#ffffff"
-  image: assets/icons/icon.png
-
+  color: "#1A1A2E"
+  image: assets/icons/splash.png
+  
   android_12:
-    image: assets/icons/icon.png
-    color: "#ffffff"
+    image: assets/icons/splash.png
+    icon_background_color: "#1A1A2E"
+    color: "#1A1A2E"
+  
+  web: false
+  fullscreen: true
 
 flutter:
   uses-material-design: true
