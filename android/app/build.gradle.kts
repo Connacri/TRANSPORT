@@ -45,11 +45,15 @@ android {
 
     signingConfigs {
         create("release") {
-            if (keystoreProperties.size > 0) {
-                keyAlias = keystoreProperties["keyAlias"] as String
-                keyPassword = keystoreProperties["keyPassword"] as String
-                storeFile = file(keystoreProperties["storeFile"] as String)
-                storePassword = keystoreProperties["storePassword"] as String
+            if (keystoreProperties.isNotEmpty()) {
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+                val storeFileProp = keystoreProperties.getProperty("storeFile")
+                if (storeFileProp != null) {
+                    // Pour que le chemin soit relatif à la racine du projet (là où se trouve transport.jks)
+                    storeFile = rootProject.file("..").resolve(storeFileProp)
+                }
+                storePassword = keystoreProperties.getProperty("storePassword")
             }
         }
     }
