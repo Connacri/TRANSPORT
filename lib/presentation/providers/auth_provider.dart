@@ -263,8 +263,10 @@ class AuthProvider extends ChangeNotifier {
 
   Future<bool> changeRole(UserRole newRole) async {
     if (_profile == null) return false;
+    final oldProfile = _profile;
     _setLoading();
     try {
+      debugPrint('[AuthProvider] Changing role from ${oldProfile?.role} to $newRole');
       _profile = await SupabaseService.instance.updateProfile(
         _profile!.id,
         {'role': newRole.name},
@@ -281,8 +283,11 @@ class AuthProvider extends ChangeNotifier {
       _status = AuthStatus.authenticated;
       notifyListeners();
       return true;
-    } catch (e) {
-      _setError(_mapError(e));
+    } catch (e, s) {
+      debugPrint('[AuthProvider] Error in changeRole: $e');
+      debugPrint('$s');
+      _profile = oldProfile; // Restaurer l'ancien profil en cas d'erreur
+      _setError(_mapError(e), raw: '$e\n$s');
       return false;
     }
   }
@@ -291,15 +296,20 @@ class AuthProvider extends ChangeNotifier {
 
   Future<bool> updateProfile(Map<String, dynamic> data) async {
     if (_profile == null) return false;
+    final oldProfile = _profile;
     try {
+      debugPrint('[AuthProvider] Updating profile with data: $data');
       _profile = await SupabaseService.instance.updateProfile(
         _profile!.id,
         data,
       );
       notifyListeners();
       return true;
-    } catch (e) {
-      _setError(_mapError(e));
+    } catch (e, s) {
+      debugPrint('[AuthProvider] Error in updateProfile: $e');
+      debugPrint('$s');
+      _profile = oldProfile;
+      _setError(_mapError(e), raw: '$e\n$s');
       return false;
     }
   }
