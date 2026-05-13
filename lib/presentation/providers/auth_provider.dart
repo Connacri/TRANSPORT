@@ -406,7 +406,7 @@ class AuthProvider extends ChangeNotifier {
       return 'Problème de connexion internet';
     }
     if (str.contains('postgrestexception')) {
-      return 'Erreur de base de données. Veuillez réessayer';
+      return 'Erreur de base de données. ${_rawError ?? "Veuillez réessayer"}';
     }
     return 'Une erreur inattendue est survenue';
   }
