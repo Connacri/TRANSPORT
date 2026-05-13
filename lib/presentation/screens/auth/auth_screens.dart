@@ -56,7 +56,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
           children: [
             Icon(Icons.bug_report_outlined, color: Colors.red),
             SizedBox(width: 8),
-            Text('Diagnostic Erreur'),
+            Expanded(child: Text('Diagnostic Erreur')),
           ],
         ),
         content: SingleChildScrollView(
@@ -667,7 +667,7 @@ class _GoogleSignInButton extends StatelessWidget {
             errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata, size: 28),
           ),
           const SizedBox(width: 12),
-          const Text('Continuer avec Google'),
+          const Flexible(child: Text('Continuer avec Google', overflow: TextOverflow.ellipsis)),
         ],
       ),
     );
